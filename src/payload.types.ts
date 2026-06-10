@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     tenants: Tenant;
+    offers: Offer;
     cards: Card;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -79,6 +80,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     tenants: TenantsSelect<false> | TenantsSelect<true>;
+    offers: OffersSelect<false> | OffersSelect<true>;
     cards: CardsSelect<false> | CardsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -164,12 +166,25 @@ export interface Tenant {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "offers".
+ */
+export interface Offer {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "cards".
  */
 export interface Card {
   id: number;
   tenant?: (number | null) | Tenant;
   title: string;
+  offer: number | Offer;
   /**
    * Litera filtra alfabetycznego, wyliczana z tytułu
    */
@@ -223,6 +238,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'tenants';
         value: number | Tenant;
+      } | null)
+    | ({
+        relationTo: 'offers';
+        value: number | Offer;
       } | null)
     | ({
         relationTo: 'cards';
@@ -311,11 +330,23 @@ export interface TenantsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "offers_select".
+ */
+export interface OffersSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "cards_select".
  */
 export interface CardsSelect<T extends boolean = true> {
   tenant?: T;
   title?: T;
+  offer?: T;
   letter?: T;
   slug?: T;
   _key?: T;

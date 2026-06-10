@@ -25,7 +25,13 @@ function letterSort(a: string, b: string): number {
   })
 }
 
-export function Catalog({ cards }: { cards: CatalogCard[] }) {
+type CatalogProps = {
+  cards: CatalogCard[]
+  heading: string
+  subheading?: string
+}
+
+export function Catalog({ cards, heading, subheading }: CatalogProps) {
   const [selectedLetter, setSelectedLetter] = useState(ALL_LETTERS)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const flipbookRef = useRef<FlipbookViewHandle>(null)
@@ -67,7 +73,8 @@ export function Catalog({ cards }: { cards: CatalogCard[] }) {
         <ScrollArea className='h-full'>
           <div className='flex flex-col gap-6 p-5'>
             <header className='flex flex-col gap-1'>
-              <h1 className='font-bold text-xl tracking-tight'>Katalog Produktów</h1>
+              <h1 className='font-bold text-xl tracking-tight'>{heading}</h1>
+              {subheading ? <p className='text-muted-foreground text-sm'>{subheading}</p> : null}
               <p className='text-muted-foreground text-sm'>{filteredCards.length} kart w widoku</p>
             </header>
             {filterPanel}

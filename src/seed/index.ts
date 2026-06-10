@@ -17,6 +17,11 @@ const TENANT = {
   slug: 'swiat-zdrowia',
 }
 
+const OFFER = {
+  name: 'Katalog podstawowy',
+  slug: 'katalog',
+}
+
 async function seed() {
   const payload = await getPayload({ config })
 
@@ -38,6 +43,23 @@ async function seed() {
     }))
 
   payload.logger.info(`Tenant: ${tenant.name} (id: ${tenant.id})`)
+
+  const existingOffer = await payload.find({
+    collection: 'offers',
+    limit: 1,
+    where: {
+      and: [{ slug: { equals: OFFER.slug } }, { tenant: { equals: tenant.id } }],
+    },
+  })
+
+  const offer =
+    existingOffer.docs[0] ??
+    (await payload.create({
+      collection: 'offers',
+      data: { ...OFFER, tenant: tenant.id },
+    }))
+
+  payload.logger.info(`Oferta: ${offer.name} (id: ${offer.id})`)
 
   // SEED_FRESH=1 usuwa karty tenanta przed seedem (kasuje też pliki z uploadthing)
   if (process.env.SEED_FRESH === '1') {
@@ -100,6 +122,7 @@ async function seed() {
     await payload.create({
       collection: 'cards',
       data: {
+        offer: offer.id,
         tenant: tenant.id,
         title,
       },

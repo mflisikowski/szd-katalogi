@@ -71,6 +71,14 @@ export const Cards: CollectionConfig = {
       type: 'text',
     },
     {
+      // Plugin multi-tenant automatycznie zawęża opcje do ofert bieżącego tenanta
+      index: true,
+      name: 'offer',
+      relationTo: 'offers',
+      required: true,
+      type: 'relationship',
+    },
+    {
       admin: {
         description: 'Litera filtra alfabetycznego, wyliczana z tytułu',
         readOnly: true,

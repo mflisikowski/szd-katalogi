@@ -1,12 +1,12 @@
 import type { CollectionConfig } from 'payload'
 
-export const Tenants: CollectionConfig = {
+export const Offers: CollectionConfig = {
   access: {
-    // Public read access allows the frontend to resolve the tenant slug anonymously; writes are scoped by the multi-tenant plugin.
     read: () => true,
   },
 
   admin: {
+    defaultColumns: ['name', 'slug', 'updatedAt'],
     useAsTitle: 'name',
   },
 
@@ -21,9 +21,8 @@ export const Tenants: CollectionConfig = {
       name: 'slug',
       required: true,
       type: 'text',
-      unique: true,
     },
   ],
 
-  slug: 'tenants',
+  slug: 'offers',
 }

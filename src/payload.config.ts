@@ -11,6 +11,7 @@ import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
 import { Cards } from '@/collections/cards'
+import { Offers } from '@/collections/offers'
 import { Tenants } from '@/collections/tenants'
 import { Users } from '@/collections/users'
 import { env } from '@/env'
@@ -27,7 +28,7 @@ export default buildConfig({
     user: Users.slug,
   },
 
-  collections: [Users, Tenants, Cards],
+  collections: [Users, Tenants, Offers, Cards],
 
   db: postgresAdapter({
     pool: {
@@ -43,6 +44,7 @@ export default buildConfig({
     multiTenantPlugin<Config>({
       collections: {
         cards: {},
+        offers: {},
       },
       tenantsSlug: Tenants.slug,
       userHasAccessToAllTenants: (user) => Boolean(user.roles?.includes('super-admin')),
