@@ -6,9 +6,11 @@ import { fileURLToPath } from 'node:url'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { uploadthingStorage } from '@payloadcms/storage-uploadthing'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
+import { Cards } from '@/collections/cards'
 import { Tenants } from '@/collections/tenants'
 import { Users } from '@/collections/users'
 import { env } from '@/env'
@@ -25,7 +27,7 @@ export default buildConfig({
     user: Users.slug,
   },
 
-  collections: [Users, Tenants],
+  collections: [Users, Tenants, Cards],
 
   db: postgresAdapter({
     pool: {
@@ -39,11 +41,20 @@ export default buildConfig({
 
   plugins: [
     multiTenantPlugin<Config>({
-      // Tenant-enabled collections go here, e.g. the upcoming
-      // PDF catalog collections: { catalogs: {}, media: {} }
-      collections: {},
+      collections: {
+        cards: {},
+      },
       tenantsSlug: Tenants.slug,
       userHasAccessToAllTenants: (user) => Boolean(user.roles?.includes('super-admin')),
+    }),
+    uploadthingStorage({
+      collections: {
+        cards: true,
+      },
+      options: {
+        acl: 'public-read',
+        token: env.UPLOADTHING_TOKEN,
+      },
     }),
   ],
 

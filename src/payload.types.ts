@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     tenants: Tenant;
+    cards: Card;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,6 +79,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     tenants: TenantsSelect<false> | TenantsSelect<true>;
+    cards: CardsSelect<false> | CardsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -162,6 +164,36 @@ export interface Tenant {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cards".
+ */
+export interface Card {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  title: string;
+  /**
+   * Litera filtra alfabetycznego, wyliczana z tytułu
+   */
+  letter?: string | null;
+  /**
+   * Generowany z tytułu, jeśli pusty
+   */
+  slug?: string | null;
+  _key?: string | null;
+  prefix?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -191,6 +223,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'tenants';
         value: number | Tenant;
+      } | null)
+    | ({
+        relationTo: 'cards';
+        value: number | Card;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -272,6 +308,29 @@ export interface TenantsSelect<T extends boolean = true> {
   slug?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cards_select".
+ */
+export interface CardsSelect<T extends boolean = true> {
+  tenant?: T;
+  title?: T;
+  letter?: T;
+  slug?: T;
+  _key?: T;
+  prefix?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
