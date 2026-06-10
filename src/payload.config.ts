@@ -49,7 +49,12 @@ export default buildConfig({
     }),
     uploadthingStorage({
       collections: {
-        cards: true,
+        // Bezpośrednie URL-e CDN (utfs.io): pliki są publiczne, a serwowanie
+        // przez /api/cards/file/* jest wadliwe — HEAD na utfs.io nie zwraca
+        // content-length i Payload odpowiada z Content-Length: 0
+        cards: {
+          disablePayloadAccessControl: true,
+        },
       },
       options: {
         acl: 'public-read',

@@ -9,7 +9,7 @@ function stripVersionSuffix(value: string): string {
 }
 
 /** "BEZ_CZARNY_ARONIA_ACEROLA_176_v23p.pdf" -> "BEZ CZARNY ARONIA ACEROLA 176" */
-function titleFromFilename(fileName: string): string {
+export function titleFromFilename(fileName: string): string {
   const noExt = fileName.replace(/\.pdf$/i, '')
   return normalizeWhitespace(stripVersionSuffix(noExt).replace(/_/g, ' '))
 }
