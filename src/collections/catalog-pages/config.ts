@@ -57,5 +57,13 @@ export const CatalogPages: CollectionConfig = {
       },
     ],
     mimeTypes: ['image/webp'],
+    // Let the Vercel CDN cache file responses at the edge — without this every
+    // image request runs the (possibly cold) function. Long-lived caching is
+    // safe because frontend URLs carry a ?v= cache-buster (catalogPageFileUrl);
+    // a replaced PDF reuses page filenames but changes the version param.
+    modifyResponseHeaders: ({ headers }) => {
+      headers.set('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable')
+      return headers
+    },
   },
 }

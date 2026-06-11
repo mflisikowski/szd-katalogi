@@ -4,6 +4,8 @@ import type { Media } from '@/payload.types'
 export type CatalogCardPage = {
   height: number
   pageNumber: number
+  // Responsive variants (320–1440w) plus the full-size original, built server-side
+  srcSet: string
   thumbUrl?: null | string
   url: string
   width: number

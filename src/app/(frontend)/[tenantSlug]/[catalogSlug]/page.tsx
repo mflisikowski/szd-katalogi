@@ -6,6 +6,11 @@ import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 
 import { Catalog } from '@/components/catalog/catalog'
+import { catalogPageFileUrl } from '@/lib/catalog-page-url'
+
+// Pre-generated responsive variants of every page image (see the catalog-pages
+// collection imageSizes). Listed narrow-to-wide for srcset order.
+const PAGE_VARIANTS = ['mobile', 'tablet', 'desktop', 'wide'] as const
 
 type PageProps = {
   params: Promise<{ catalogSlug: string; tenantSlug: string }>
@@ -108,11 +113,14 @@ export default async function CatalogPage({ params }: PageProps) {
           height: true,
           media: true,
           pageNumber: true,
+          prefix: true,
           sizes: {
-            mobile: {
-              filename: true,
-            },
+            desktop: { filename: true, width: true },
+            mobile: { filename: true, width: true },
+            tablet: { filename: true, width: true },
+            wide: { filename: true, width: true },
           },
+          updatedAt: true,
           width: true,
         },
         sort: 'pageNumber',
@@ -132,13 +140,24 @@ export default async function CatalogPage({ params }: PageProps) {
     const mediaId = typeof page.media === 'object' ? page.media.id : page.media
     const pages = pagesByMedia.get(mediaId) ?? []
 
+    // Cache-buster shared by all variants of the page (see catalogPageFileUrl)
+    const version = Date.parse(page.updatedAt)
+    const fileUrl = (filename: string) => catalogPageFileUrl({ filename, prefix: page.prefix, version })
+
+    const url = fileUrl(page.filename)
+    const srcSet = PAGE_VARIANTS.flatMap((variant) => {
+      const size = page.sizes?.[variant]
+      return size?.filename && size.width ? `${fileUrl(size.filename)} ${size.width}w` : []
+    })
+      .concat(`${url} ${page.width}w`)
+      .join(', ')
+
     pages.push({
       height: page.height,
       pageNumber: page.pageNumber,
-      thumbUrl: page.sizes?.mobile?.filename
-        ? `/api/catalog-pages/file/${encodeURIComponent(page.sizes.mobile.filename)}`
-        : undefined,
-      url: `/api/catalog-pages/file/${encodeURIComponent(page.filename)}`,
+      srcSet,
+      thumbUrl: page.sizes?.mobile?.filename ? fileUrl(page.sizes.mobile.filename) : undefined,
+      url,
       width: page.width,
     })
 

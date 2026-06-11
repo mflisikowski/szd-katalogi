@@ -4,7 +4,6 @@ import type { Ref } from 'react'
 import type { CatalogCard, CatalogCardPage } from './types'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import Image from 'next/image'
 import { useImperativeHandle, useRef, useState } from 'react'
 import HTMLFlipBook from 'react-pageflip'
 
@@ -15,9 +14,7 @@ export type FlipbookViewHandle = {
 }
 
 type FlipController = {
-  pageFlip: () =>
-    | { flipNext: () => void; flipPrev: () => void; turnToPage: (page: number) => void }
-    | undefined
+  pageFlip: () => { flipNext: () => void; flipPrev: () => void; turnToPage: (page: number) => void } | undefined
 }
 
 type PageEntry = {
@@ -119,13 +116,20 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
           >
             {pageEntries.map((entry, index) => (
               <article className='h-full w-full overflow-hidden bg-white' key={entry.key}>
-                <Image
+                {/* biome-ignore lint/performance/noImgElement: deliberate — srcSet points at
+                    pre-generated Azure variants; next/image would route through Vercel image
+                    optimization (transform limits, out-of-region cold path). A spread page
+                    renders at ~450px on desktop (maxWidth 900 for two pages). */}
+                <img
                   alt={`${entry.card.title}, strona ${entry.page.pageNumber}`}
                   className='block h-full w-full'
+                  decoding='async'
+                  fetchPriority={index === 0 ? 'high' : undefined}
                   height={entry.page.height}
-                  loading={index === 0 ? undefined : 'lazy'}
-                  priority={index === 0}
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  sizes='(max-width: 768px) 92vw, 450px'
                   src={entry.page.url}
+                  srcSet={entry.page.srcSet}
                   width={entry.page.width}
                 />
               </article>
