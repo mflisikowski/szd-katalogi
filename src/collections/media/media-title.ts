@@ -27,10 +27,10 @@ export function categoriesFromFilename(fileName: string): string[] {
   const noExt = fileName.replace(/\.pdf$/i, '')
   const match = noExt.match(/\[(.+?)\]\s*$/)
   if (!match) return []
-  return match[1]
-    .split(',')
-    .map((name) => normalizeWhitespace(name))
-    .filter(Boolean)
+  return match[1].split(',').flatMap((name) => {
+    const normalized = normalizeWhitespace(name)
+    return normalized ? [normalized] : []
+  })
 }
 
 /** First ASCII letter of the title (diacritics folded), '#' for non-letters. */

@@ -72,11 +72,12 @@ export const hookResolveCategories: CollectionBeforeValidateHook = async ({ data
   // page generation in hookGenerateCatalogPages — restore it when done
   const uploadFile = req.file
   try {
-    const ids: number[] = []
-    for (const name of names) {
-      const id = await findOrCreateCategory(name, catalogId, tenantId, req)
-      if (id !== undefined && !ids.includes(id)) ids.push(id)
-    }
+    // Dedupe by slug up front: two names with the same slug racing concurrently
+    // would hit the unique (slug, catalog) index inside this transaction and
+    // abort it on Postgres
+    const uniqueNames = [...new Map(names.map((name) => [slugFromTitle(name), name])).values()]
+    const resolved = await Promise.all(uniqueNames.map((name) => findOrCreateCategory(name, catalogId, tenantId, req)))
+    const ids = resolved.filter((id): id is number => id !== undefined)
 
     if (ids.length > 0) data.categories = ids
   } finally {
