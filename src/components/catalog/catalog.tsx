@@ -17,13 +17,21 @@ import {
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ExportPdfButton } from './export-pdf-button'
-import { ALL_LETTERS, FilterPanel } from './filter-panel'
+import { ALL_CATEGORIES, ALL_LETTERS, FilterPanel } from './filter-panel'
 import { FlipbookView, type FlipbookViewHandle } from './flipbook-view'
 
 function letterSort(a: string, b: string): number {
   return a.localeCompare(b, 'pl', {
     sensitivity: 'base',
   })
+}
+
+function parseCategories(raw: string | null | undefined): string[] {
+  if (!raw) return []
+  return raw
+    .split(',')
+    .map((c) => c.trim())
+    .filter(Boolean)
 }
 
 type CatalogProps = {
@@ -34,16 +42,37 @@ type CatalogProps = {
 
 export function Catalog({ cards, heading, subheading }: CatalogProps) {
   const [selectedLetter, setSelectedLetter] = useState(ALL_LETTERS)
+  const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const flipbookRef = useRef<FlipbookViewHandle>(null)
 
   const uniqueLetters = new Set(cards.map((card) => card.letter).filter((letter): letter is string => Boolean(letter)))
   const letters = Array.from(uniqueLetters).sort(letterSort)
 
-  const filteredCards = selectedLetter === ALL_LETTERS ? cards : cards.filter((card) => card.letter === selectedLetter)
+  const uniqueCategories = new Set<string>()
+  for (const card of cards) {
+    for (const cat of parseCategories(card.categories)) {
+      uniqueCategories.add(cat)
+    }
+  }
+  const categories = Array.from(uniqueCategories).sort((a, b) => a.localeCompare(b, 'pl'))
+
+  const filteredCards = cards.filter((card) => {
+    if (selectedLetter !== ALL_LETTERS && card.letter !== selectedLetter) return false
+    if (selectedCategory !== ALL_CATEGORIES) {
+      const cardCategories = parseCategories(card.categories)
+      if (!cardCategories.includes(selectedCategory)) return false
+    }
+    return true
+  })
 
   function handleSelectLetter(letter: string) {
     setSelectedLetter(letter)
+    setFiltersOpen(false)
+  }
+
+  function handleSelectCategory(category: string) {
+    setSelectedCategory(category)
     setFiltersOpen(false)
   }
 
@@ -60,9 +89,12 @@ export function Catalog({ cards, heading, subheading }: CatalogProps) {
       />
       <FilterPanel
         cards={filteredCards}
+        categories={categories}
         letters={letters}
         onJumpToCard={handleJumpToCard}
+        onSelectCategory={handleSelectCategory}
         onSelectLetter={handleSelectLetter}
+        selectedCategory={selectedCategory}
         selectedLetter={selectedLetter}
       />
     </>
@@ -104,7 +136,8 @@ export function Catalog({ cards, heading, subheading }: CatalogProps) {
             <Button className='w-full' variant='outline'>
               <SlidersHorizontal data-icon='inline-start' />
               Filters
-              {selectedLetter !== ALL_LETTERS ? ` — ${selectedLetter}` : ''} ({filteredCards.length})
+              {selectedLetter !== ALL_LETTERS ? ` — ${selectedLetter}` : ''}
+              {selectedCategory !== ALL_CATEGORIES ? ` — ${selectedCategory}` : ''} ({filteredCards.length})
             </Button>
           </DrawerTrigger>
           <DrawerContent>

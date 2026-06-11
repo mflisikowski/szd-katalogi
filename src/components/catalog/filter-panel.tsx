@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 export const ALL_LETTERS = 'ALL'
+export const ALL_CATEGORIES = 'ALL'
 
 type FilterPanelProps = {
   cards: CatalogCard[]
@@ -14,9 +15,21 @@ type FilterPanelProps = {
   onJumpToCard: (cardId: CatalogCard['id']) => void
   onSelectLetter: (letter: string) => void
   selectedLetter: string
+  categories: string[]
+  onSelectCategory: (category: string) => void
+  selectedCategory: string
 }
 
-export function FilterPanel({ cards, letters, onJumpToCard, onSelectLetter, selectedLetter }: FilterPanelProps) {
+export function FilterPanel({
+  cards,
+  letters,
+  onJumpToCard,
+  onSelectLetter,
+  selectedLetter,
+  categories,
+  onSelectCategory,
+  selectedCategory,
+}: FilterPanelProps) {
   return (
     <div className='flex flex-col gap-6'>
       <section className='flex flex-col gap-2'>
@@ -32,6 +45,24 @@ export function FilterPanel({ cards, letters, onJumpToCard, onSelectLetter, sele
           {letters.map((letter) => (
             <ToggleGroupItem key={letter} value={letter}>
               {letter}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </section>
+
+      <section className='flex flex-col gap-2'>
+        <h3 className='font-semibold text-muted-foreground text-xs uppercase tracking-widest'>Categories</h3>
+        <ToggleGroup
+          className='w-full flex-wrap'
+          onValueChange={(value) => onSelectCategory((value[0] as string | undefined) ?? ALL_CATEGORIES)}
+          size='sm'
+          value={[selectedCategory]}
+          variant='outline'
+        >
+          <ToggleGroupItem value={ALL_CATEGORIES}>All</ToggleGroupItem>
+          {categories.map((category) => (
+            <ToggleGroupItem key={category} value={category}>
+              {category}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>

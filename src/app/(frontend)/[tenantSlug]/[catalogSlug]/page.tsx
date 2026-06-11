@@ -77,6 +77,7 @@ export default async function CatalogPage({ params }: PageProps) {
     pagination: false,
     select: {
       // filename is needed by the storage adapter to generate the url in afterRead
+      categories: true,
       filename: true,
       letter: true,
       slug: true,
