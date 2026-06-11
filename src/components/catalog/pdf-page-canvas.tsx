@@ -32,7 +32,7 @@ export function PdfPageCanvas({ pageNumber, title, url }: { pageNumber: number; 
         await page.render({ canvas, canvasContext: context, viewport }).promise
         if (!cancelled) setStatus('ready')
       } catch (error) {
-        console.error('Błąd renderowania strony PDF', error)
+        console.error('Failed to render PDF page', error)
         if (!cancelled) setStatus('error')
       }
     }
@@ -49,10 +49,10 @@ export function PdfPageCanvas({ pageNumber, title, url }: { pageNumber: number; 
       {status === 'loading' ? <Skeleton className='absolute inset-0' /> : null}
       {status === 'error' ? (
         <div className='absolute inset-0 flex items-center justify-center text-muted-foreground text-sm'>
-          Nie udało się wyrenderować strony
+          Failed to render page
         </div>
       ) : null}
-      <canvas aria-label={`${title}, strona ${pageNumber}`} className='block h-full w-full' ref={canvasRef} />
+      <canvas aria-label={`${title}, page ${pageNumber}`} className='block h-full w-full' ref={canvasRef} />
     </div>
   )
 }

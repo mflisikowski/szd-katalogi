@@ -11,11 +11,12 @@ import { pl } from '@payloadcms/translations/languages/pl'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
-import { Cards } from '@/collections/cards'
-import { Offers } from '@/collections/offers'
-import { Tenants } from '@/collections/tenants'
-import { Users } from '@/collections/users'
+import { Catalogs } from '@/collections/catalogs/config'
+import { Media } from '@/collections/media/config'
+import { Tenants } from '@/collections/tenants/config'
+import { Users } from '@/collections/users/config'
 import { env } from '@/env'
+import { translations } from '@/translations'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -29,7 +30,7 @@ export default buildConfig({
     user: Users.slug,
   },
 
-  collections: [Users, Tenants, Offers, Cards],
+  collections: [Users, Tenants, Catalogs, Media],
 
   db: postgresAdapter({
     pool: {
@@ -44,13 +45,14 @@ export default buildConfig({
   i18n: {
     fallbackLanguage: 'pl',
     supportedLanguages: { pl },
+    translations,
   },
 
   plugins: [
     multiTenantPlugin<Config>({
       collections: {
-        cards: {},
-        offers: {},
+        catalogs: {},
+        media: {},
       },
       tenantsSlug: Tenants.slug,
       userHasAccessToAllTenants: (user) => Boolean(user.roles?.includes('super-admin')),
@@ -60,7 +62,7 @@ export default buildConfig({
       allowContainerCreate: false,
       baseURL: env.AZURE_STORAGE_ACCOUNT_BASEURL,
       collections: {
-        cards: true,
+        media: true,
       },
       connectionString: env.AZURE_STORAGE_CONNECTION_STRING,
       containerName: env.AZURE_STORAGE_CONTAINER_NAME,

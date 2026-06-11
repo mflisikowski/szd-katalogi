@@ -42,8 +42,9 @@
   "scripts": {
     "build": "shadcn build && next build",
     "dev": "next dev",
-    "format": "biome format --write",
-    "lint": "biome check",
+    "format": "biome format --write .",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
     "payload:importMap": "payload generate:importmap",
     "payload:types": "payload generate:types",
     "registry:build": "shadcn build",

@@ -18,7 +18,7 @@ export function FilterPanel({ cards, letters, onJumpToCard, onSelectLetter, sele
   return (
     <div className='flex flex-col gap-6'>
       <section className='flex flex-col gap-2'>
-        <h3 className='font-semibold text-muted-foreground text-xs uppercase tracking-widest'>Filtr alfabetyczny</h3>
+        <h3 className='font-semibold text-muted-foreground text-xs uppercase tracking-widest'>Alphabetical filter</h3>
         <ToggleGroup
           className='w-full flex-wrap'
           onValueChange={(value) => onSelectLetter((value[0] as string | undefined) ?? ALL_LETTERS)}
@@ -26,7 +26,7 @@ export function FilterPanel({ cards, letters, onJumpToCard, onSelectLetter, sele
           value={[selectedLetter]}
           variant='outline'
         >
-          <ToggleGroupItem value={ALL_LETTERS}>Wszystkie</ToggleGroupItem>
+          <ToggleGroupItem value={ALL_LETTERS}>All</ToggleGroupItem>
           {letters.map((letter) => (
             <ToggleGroupItem key={letter} value={letter}>
               {letter}
@@ -36,7 +36,7 @@ export function FilterPanel({ cards, letters, onJumpToCard, onSelectLetter, sele
       </section>
 
       <section className='flex flex-col gap-2'>
-        <h3 className='font-semibold text-muted-foreground text-xs uppercase tracking-widest'>Spis treści</h3>
+        <h3 className='font-semibold text-muted-foreground text-xs uppercase tracking-widest'>Table of contents</h3>
         <nav className='flex flex-col'>
           {cards.map((card) => (
             <button
@@ -50,7 +50,7 @@ export function FilterPanel({ cards, letters, onJumpToCard, onSelectLetter, sele
           ))}
           {cards.length === 0 ? (
             <p className='rounded-md border border-dashed p-4 text-muted-foreground text-sm'>
-              Brak kart dla wybranego filtra.
+              No cards for the selected filter.
             </p>
           ) : null}
         </nav>

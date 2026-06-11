@@ -48,7 +48,7 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
             const doc = await loadPdf(card.url as string)
             result[card.id] = doc.numPages
           } catch (error) {
-            console.error('Błąd odczytu liczby stron', card.title, error)
+            console.error('Failed to read page count', card.title, error)
             result[card.id] = 1
           }
         }),
@@ -76,7 +76,7 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
       .then(async (doc) => {
         const page = await doc.getPage(1)
         const viewport = page.getViewport({ scale: 1 })
-        // Normalizacja do praktycznego rozmiaru viewportu z zachowaniem proporcji PDF
+        // Normalize to practical viewport size while preserving PDF aspect ratio
         const scale = DEFAULT_DIMENSIONS.height / viewport.height
         if (!cancelled) {
           setDimensions({
@@ -86,7 +86,7 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
         }
       })
       .catch((error) => {
-        console.error('Nie udało się odczytać wymiarów strony PDF', error)
+        console.error('Failed to read PDF page dimensions', error)
         if (!cancelled) setDimensions(DEFAULT_DIMENSIONS)
       })
 
@@ -130,7 +130,7 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
 
   const pageCountsReady = renderableCards.every((card) => Number.isInteger(pageCounts[card.id]))
 
-  // Remount flipbooka przy zmianie zestawu stron — biblioteka nie wspiera dynamicznych dzieci
+  // Remount flipbook when the page set changes — the library does not support dynamic children
   const flipbookKey = `${renderableCards.map((card) => card.id).join('|')}-${pageEntries.length}`
 
   return (
@@ -148,7 +148,7 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
         {!pageCountsReady ? (
           <Skeleton className='aspect-[5/7] w-full max-w-md' />
         ) : pageEntries.length === 0 ? (
-          <p className='text-muted-foreground text-sm'>Brak stron do wyświetlenia.</p>
+          <p className='text-muted-foreground text-sm'>No pages to display.</p>
         ) : (
           <HTMLFlipBook
             autoSize
@@ -193,7 +193,7 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
           Poprzednia
         </Button>
         <Button onClick={() => flipRef.current?.pageFlip()?.flipNext()} type='button' variant='outline'>
-          Następna
+          Next
           <ChevronRight data-icon='inline-end' />
         </Button>
       </div>

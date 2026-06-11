@@ -1,5 +1,7 @@
 'use client'
 
+import type { TranslationDictionary, TranslationKeys } from '@/translations'
+
 import {
   Banner,
   Button,
@@ -9,10 +11,11 @@ import {
   useDocumentInfo,
   useFormFields,
   useModal,
+  useTranslation,
 } from '@payloadcms/ui'
 import { useCallback, useEffect, useState } from 'react'
 
-const MODAL_SLUG = 'duplicate-card-guard'
+const MODAL_SLUG = 'duplicate-media-guard'
 
 type Duplicate = {
   id: number | string
@@ -20,31 +23,32 @@ type Duplicate = {
 }
 
 /**
- * Proactive warning in the card edit view: before the editor saves, it checks
- * whether a card with the same title already exists in the selected offer (convenience layer over
- * the `ensureUniqueTitleInOffer` hook, which is a hard guarantee on the server side).
- * Provides one-click deletion of the old card without navigating to the list and filtering.
+ * Proactive warning in the media edit view: before the editor saves, it checks
+ * whether a file with the same title already exists in the selected catalog (convenience layer over
+ * the `hookEnsureUniqueTitleInCatalog` hook, which is a hard guarantee on the server side).
+ * Provides one-click deletion of the old file without navigating to the list and filtering.
  */
-export function DuplicateCardGuard() {
+export function DuplicateMediaGuard() {
   const { openModal, closeModal } = useModal()
   const { id: currentId } = useDocumentInfo()
   const { config } = useConfig()
+  const { t } = useTranslation<TranslationDictionary, TranslationKeys>()
 
   const title = useFormFields(([fields]) => fields?.title?.value as string | undefined)
-  const offer = useFormFields(([fields]) => fields?.offer?.value as number | string | undefined)
+  const catalog = useFormFields(([fields]) => fields?.catalog?.value as number | string | undefined)
 
   const [duplicate, setDuplicate] = useState<Duplicate | null>(null)
 
   const apiBase = `${config.serverURL ?? ''}${config.routes.api}`
 
   useEffect(() => {
-    if (!title || !offer) {
+    if (!title || !catalog) {
       setDuplicate(null)
       return
     }
 
     const controller = new AbortController()
-    const conditions: Record<string, unknown>[] = [{ title: { equals: title } }, { offer: { equals: offer } }]
+    const conditions: Record<string, unknown>[] = [{ title: { equals: title } }, { catalog: { equals: catalog } }]
 
     if (currentId) conditions.push({ id: { not_equals: currentId } })
 
@@ -52,7 +56,7 @@ export function DuplicateCardGuard() {
 
     async function check() {
       try {
-        const res = await fetch(`${apiBase}/cards?depth=0&limit=1&where=${query}`, {
+        const res = await fetch(`${apiBase}/media?depth=0&limit=1&where=${query}`, {
           credentials: 'include',
           signal: controller.signal,
         })
@@ -66,41 +70,39 @@ export function DuplicateCardGuard() {
 
     void check()
     return () => controller.abort()
-  }, [title, offer, currentId, apiBase])
+  }, [title, catalog, currentId, apiBase])
 
   const handleDelete = useCallback(async () => {
     if (!duplicate) return
     try {
-      const res = await fetch(`${apiBase}/cards/${duplicate.id}`, {
+      const res = await fetch(`${apiBase}/media/${duplicate.id}`, {
         credentials: 'include',
         method: 'DELETE',
       })
       if (!res.ok) throw new Error('delete failed')
-      toast.success(`Usunięto starą kartę „${duplicate.title}”. Możesz teraz zapisać nową wersję.`)
+      toast.success(t('custom:media:duplicateGuard:deleteSuccess', { title: duplicate.title }))
       setDuplicate(null)
       closeModal(MODAL_SLUG)
     } catch {
-      toast.error('Nie udało się usunąć karty. Spróbuj ponownie lub usuń ją z listy kart.')
+      toast.error(t('custom:media:duplicateGuard:deleteError'))
     }
-  }, [duplicate, apiBase, closeModal])
+  }, [duplicate, apiBase, closeModal, t])
 
   if (!duplicate) return null
 
   return (
     <div>
-      <Banner type='error'>
-        Karta „{duplicate.title}” już istnieje w tej ofercie. Zapis nowej wersji zostanie zablokowany.
-      </Banner>
+      <Banner type='error'>{t('custom:media:duplicateGuard:banner', { title: duplicate.title })}</Banner>
 
       <Button buttonStyle='error' onClick={() => openModal(MODAL_SLUG)} size='small'>
-        Usuń istniejącą kartę
+        {t('custom:media:duplicateGuard:deleteButton')}
       </Button>
 
       <ConfirmationModal
-        body={`Trwale usunąć kartę „${duplicate.title}” z tej oferty? Tej operacji nie można cofnąć.`}
-        cancelLabel='Anuluj'
-        confirmLabel='Usuń teraz'
-        heading='Usunięcie istniejącej karty'
+        body={t('custom:media:duplicateGuard:modalBody', { title: duplicate.title })}
+        cancelLabel={t('custom:media:duplicateGuard:modalCancel')}
+        confirmLabel={t('custom:media:duplicateGuard:modalConfirm')}
+        heading={t('custom:media:duplicateGuard:modalHeading')}
         modalSlug={MODAL_SLUG}
         onConfirm={handleDelete}
       />

@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import type { TLabel } from '@/translations'
 
 export const Tenants: CollectionConfig = {
   access: {
@@ -12,18 +13,25 @@ export const Tenants: CollectionConfig = {
 
   fields: [
     {
+      label: ({ t }: TLabel) => t('custom:tenants:fields:name'),
       name: 'name',
       required: true,
       type: 'text',
     },
     {
       index: true,
+      label: ({ t }: TLabel) => t('custom:tenants:fields:slug'),
       name: 'slug',
       required: true,
       type: 'text',
       unique: true,
     },
   ],
+
+  labels: {
+    plural: ({ t }: TLabel) => t('custom:tenants:plural'),
+    singular: ({ t }: TLabel) => t('custom:tenants:singular'),
+  },
 
   slug: 'tenants',
 }

@@ -1,105 +1,101 @@
 {
   "file_types": {
     "dotenv": [".env*"],
-    "jsonc": [
-      "**/frontmatter.json",
-      "**/.frontmatter/config/*.json",
-      "**/tsconfig.json",
-    ],
-    "tailwindcss": ["*.css"],
+    "jsonc": ["**/frontmatter.json", "**/.frontmatter/config/*.json", "**/tsconfig.json"],
+    "tailwindcss": ["*.css"]
   },
   "languages": {
     "CSS": {
       "format_on_save": "off",
       "hard_tabs": false,
       "language_servers": ["tailwindcss-language-server", "..."],
-      "tab_size": 2,
+      "tab_size": 2
     },
     "JavaScript": {
       "code_actions_on_format": {
         "source.fixAll.biome": true,
         "source.organizeImports.biome": true,
-        "source.useSortedProperties.biome": true,
+        "source.useSortedProperties.biome": true
       },
       "format_on_save": "on",
       "formatter": {
         "language_server": {
-          "name": "biome",
-        },
+          "name": "biome"
+        }
       },
-      "language_servers": ["biome", "..."],
+      "language_servers": ["biome", "..."]
     },
     "JSON": {
       "code_actions_on_format": {
         "source.fixAll.biome": true,
-        "source.useSortedKeys.biome": true,
+        "source.useSortedKeys.biome": true
       },
       "format_on_save": "on",
       "formatter": {
         "language_server": {
-          "name": "biome",
-        },
+          "name": "biome"
+        }
       },
       "hard_tabs": false,
       "language_servers": ["biome", "..."],
-      "tab_size": 2,
+      "tab_size": 2
     },
     "JSONC": {
       "code_actions_on_format": {
         "source.fixAll.biome": true,
-        "source.useSortedKeys.biome": true,
+        "source.useSortedKeys.biome": true
       },
       "format_on_save": "on",
       "formatter": {
         "language_server": {
-          "name": "biome",
-        },
+          "name": "biome"
+        }
       },
       "hard_tabs": false,
       "language_servers": ["biome", "..."],
-      "tab_size": 2,
+      "tab_size": 2
     },
     "Markdown": {
       "format_on_save": "on",
       "formatter": "language_server",
       "hard_tabs": false,
-      "tab_size": 2,
+      "tab_size": 2
     },
     "TSX": {
       "code_actions_on_format": {
         "source.fixAll.biome": true,
         "source.organizeImports.biome": true,
         "source.useSortedAttributes.biome": true,
-        "source.useSortedProperties.biome": true,
+        "source.useSortedProperties.biome": true
       },
       "format_on_save": "on",
       "formatter": {
         "language_server": {
-          "name": "biome",
-        },
+          "name": "biome"
+        }
       },
-      "language_servers": ["biome", "..."],
+      "language_servers": ["biome", "..."]
     },
     "TypeScript": {
       "code_actions_on_format": {
         "source.fixAll.biome": true,
         "source.organizeImports.biome": true,
-        "source.useSortedProperties.biome": true,
+        "source.useSortedProperties.biome": true
       },
       "format_on_save": "on",
       "formatter": {
         "language_server": {
-          "name": "biome",
-        },
+          "name": "biome"
+        }
       },
-      "language_servers": ["biome", "..."],
-    },
+      "language_servers": ["biome", "..."]
+    }
   },
   "lsp": {
     "biome": {
       "settings": {
-        "config_path": "biome.json",
-      },
+        "config_path": "biome.json"
+      }
     },
     "tailwindcss-language-server": {
       // https://github.com/tailwindlabs/tailwindcss-intellisense?tab=readme-ov-file#extension-settings
@@ -107,12 +103,12 @@
         "classFunctions": ["cn"],
         "emmetCompletions": true,
         "lint": {
-          "suggestCanonicalClasses": "error",
-        },
-      },
-    },
+          "suggestCanonicalClasses": "error"
+        }
+      }
+    }
   },
   "prettier": {
-    "enabled": false,
-  },
+    "enabled": false
+  }
 }

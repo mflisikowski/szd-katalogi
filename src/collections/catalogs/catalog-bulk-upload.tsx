@@ -1,22 +1,32 @@
 'use client'
 
 import type { FormState } from 'payload'
+import type { TranslationDictionary, TranslationKeys } from '@/translations'
 
-import { Button, toast, useBulkUpload, useDocumentInfo, useModal, useServerFunctions } from '@payloadcms/ui'
+import {
+  Button,
+  toast,
+  useBulkUpload,
+  useDocumentInfo,
+  useModal,
+  useServerFunctions,
+  useTranslation,
+} from '@payloadcms/ui'
 import { useRouter } from 'next/navigation'
 import { useCallback, useRef, useState } from 'react'
 
 /**
- * Button "Upload PDF batch" in the offer view: opens the native Payload bulk upload drawer
- * scoped to the `cards` collection, with the `offer` field pre-filled with the current
- * offer for each file. Closes the gap of the join field which only allows creating cards
+ * Button "Wgraj partię PDF" in the catalog view: opens the native Payload bulk upload drawer
+ * scoped to the `media` collection, with the `catalog` field pre-filled with the current
+ * catalog for each file. Closes the gap of the join field which only allows creating media
  * individually. The anti-duplicate hook works per file — errors are visible in the drawer.
  */
-export function OfferBulkUpload() {
-  const { id: offerID } = useDocumentInfo()
+export function CatalogBulkUpload() {
+  const { id: catalogID } = useDocumentInfo()
   const { drawerSlug, setCollectionSlug, setInitialForms, setOnCancel, setOnSuccess } = useBulkUpload()
   const { getFormState } = useServerFunctions()
   const { openModal } = useModal()
+  const { t } = useTranslation<TranslationDictionary, TranslationKeys>()
   const router = useRouter()
 
   const inputRef = useRef<HTMLInputElement>(null)
@@ -24,48 +34,48 @@ export function OfferBulkUpload() {
 
   const openDrawerWithFiles = useCallback(
     async (files: File[]) => {
-      if (!offerID || files.length === 0) return
+      if (!catalogID || files.length === 0) return
 
       setIsPreparing(true)
       try {
         // initialState per file replaces (does not merge) the shared drawer state,
-        // so we build the full 'create' state server-side, with the offer already set.
+        // so we build the full 'create' state server-side, with the catalog already set.
         const { state } = await getFormState({
-          collectionSlug: 'cards',
-          data: { offer: offerID },
+          collectionSlug: 'media',
+          data: { catalog: catalogID },
           // Form state only renders fields — actual permissions are enforced by the server on save
           docPermissions: { create: true, fields: true, read: true, update: true },
           docPreferences: { fields: {} },
           operation: 'create',
           renderAllFields: true,
-          schemaPath: 'cards',
+          schemaPath: 'media',
           skipValidation: true,
         })
 
         if (!state) throw new Error('empty form state')
 
-        const offerField = { ...state.offer, initialValue: offerID, valid: true, value: offerID }
+        const catalogField = { ...state.catalog, initialValue: catalogID, valid: true, value: catalogID }
 
-        setCollectionSlug('cards')
+        setCollectionSlug('media')
         setInitialForms(
           files.map((file) => ({
             file,
-            initialState: { ...state, offer: offerField } as FormState,
+            initialState: { ...state, catalog: catalogField } as FormState,
           })),
         )
         setOnSuccess(() => router.refresh())
         // On partial save (duplicates) the drawer stays open and the editor closes it manually
-        // — refresh the card list also then
+        // — refresh the media list also then
         setOnCancel(() => router.refresh())
         openModal(drawerSlug)
       } catch {
-        toast.error('Nie udało się przygotować wgrywania partii. Spróbuj ponownie.')
+        toast.error(t('custom:catalogs:bulkUpload:error'))
       } finally {
         setIsPreparing(false)
       }
     },
     [
-      offerID,
+      catalogID,
       getFormState,
       setCollectionSlug,
       setInitialForms,
@@ -74,16 +84,17 @@ export function OfferBulkUpload() {
       openModal,
       drawerSlug,
       router,
+      t,
     ],
   )
 
-  // A new, unsaved offer has no ID — nothing to attach cards to
-  if (!offerID) return null
+  // A new, unsaved catalog has no ID — nothing to attach media to
+  if (!catalogID) return null
 
   return (
     <div>
       <Button buttonStyle='secondary' disabled={isPreparing} onClick={() => inputRef.current?.click()} size='small'>
-        {isPreparing ? 'Przygotowywanie…' : 'Wgraj partię PDF'}
+        {isPreparing ? t('custom:catalogs:bulkUpload:preparing') : t('custom:catalogs:bulkUpload:button')}
       </Button>
       <input
         accept='application/pdf'

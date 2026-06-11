@@ -69,23 +69,23 @@ export interface Config {
   collections: {
     users: User;
     tenants: Tenant;
-    offers: Offer;
-    cards: Card;
+    catalogs: Catalog;
+    media: Media;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {
-    offers: {
-      cards: 'cards';
+    catalogs: {
+      media: 'media';
     };
   };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     tenants: TenantsSelect<false> | TenantsSelect<true>;
-    offers: OffersSelect<false> | OffersSelect<true>;
-    cards: CardsSelect<false> | CardsSelect<true>;
+    catalogs: CatalogsSelect<false> | CatalogsSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -170,15 +170,15 @@ export interface Tenant {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "offers".
+ * via the `definition` "catalogs".
  */
-export interface Offer {
+export interface Catalog {
   id: number;
   tenant?: (number | null) | Tenant;
   name: string;
   slug: string;
-  cards?: {
-    docs?: (number | Card)[];
+  media?: {
+    docs?: (number | Media)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
@@ -187,23 +187,14 @@ export interface Offer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "cards".
+ * via the `definition` "media".
  */
-export interface Card {
+export interface Media {
   id: number;
   tenant?: (number | null) | Tenant;
-  /**
-   * Zostaw puste — tytuł wyliczy się z nazwy pliku PDF przy zapisie
-   */
   title: string;
-  offer: number | Offer;
-  /**
-   * Litera filtra alfabetycznego, wyliczana z tytułu
-   */
+  catalog: number | Catalog;
   letter?: string | null;
-  /**
-   * Generowany z tytułu, jeśli pusty
-   */
   slug?: string | null;
   prefix?: string | null;
   createdAt: string;
@@ -251,12 +242,12 @@ export interface PayloadLockedDocument {
         value: number | Tenant;
       } | null)
     | ({
-        relationTo: 'offers';
-        value: number | Offer;
+        relationTo: 'catalogs';
+        value: number | Catalog;
       } | null)
     | ({
-        relationTo: 'cards';
-        value: number | Card;
+        relationTo: 'media';
+        value: number | Media;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -341,24 +332,24 @@ export interface TenantsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "offers_select".
+ * via the `definition` "catalogs_select".
  */
-export interface OffersSelect<T extends boolean = true> {
+export interface CatalogsSelect<T extends boolean = true> {
   tenant?: T;
   name?: T;
   slug?: T;
-  cards?: T;
+  media?: T;
   updatedAt?: T;
   createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "cards_select".
+ * via the `definition` "media_select".
  */
-export interface CardsSelect<T extends boolean = true> {
+export interface MediaSelect<T extends boolean = true> {
   tenant?: T;
   title?: T;
-  offer?: T;
+  catalog?: T;
   letter?: T;
   slug?: T;
   prefix?: T;

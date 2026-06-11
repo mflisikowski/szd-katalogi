@@ -68,14 +68,14 @@ export function Catalog({ cards, heading, subheading }: CatalogProps) {
 
   return (
     <div className='flex min-h-svh w-full flex-col md:flex-row md:items-start'>
-      {/* Tablet+: lewy panel filtrów ze scrollowaniem */}
+      {/* Tablet+: left filter panel with scrolling */}
       <aside className='sticky top-0 hidden h-svh w-72 shrink-0 border-r bg-background md:block lg:w-80'>
         <ScrollArea className='h-full'>
           <div className='flex flex-col gap-6 p-5'>
             <header className='flex flex-col gap-1'>
               <h1 className='font-bold text-xl tracking-tight'>{heading}</h1>
               {subheading ? <p className='text-muted-foreground text-sm'>{subheading}</p> : null}
-              <p className='text-muted-foreground text-sm'>{filteredCards.length} kart w widoku</p>
+              <p className='text-muted-foreground text-sm'>{filteredCards.length} cards in view</p>
             </header>
             {filterPanel}
           </div>
@@ -86,8 +86,8 @@ export function Catalog({ cards, heading, subheading }: CatalogProps) {
         {filteredCards.length === 0 ? (
           <Empty>
             <EmptyHeader>
-              <EmptyTitle>Brak kart</EmptyTitle>
-              <EmptyDescription>Brak kart dla wybranego filtra lub katalog jest pusty.</EmptyDescription>
+              <EmptyTitle>No cards</EmptyTitle>
+              <EmptyDescription>No cards for the selected filter or the catalog is empty.</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : (
@@ -95,20 +95,20 @@ export function Catalog({ cards, heading, subheading }: CatalogProps) {
         )}
       </main>
 
-      {/* Mobile: dokowany pasek filtrów na dole z drawerem (vaul) */}
+      {/* Mobile: docked filter bar at the bottom with a drawer (vaul) */}
       <div className='fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-3 backdrop-blur md:hidden'>
         <Drawer onOpenChange={setFiltersOpen} open={filtersOpen}>
           <DrawerTrigger asChild>
             <Button className='w-full' variant='outline'>
               <SlidersHorizontal data-icon='inline-start' />
-              Filtry
+              Filters
               {selectedLetter !== ALL_LETTERS ? ` — ${selectedLetter}` : ''} ({filteredCards.length})
             </Button>
           </DrawerTrigger>
           <DrawerContent>
             <DrawerHeader>
-              <DrawerTitle>Filtry</DrawerTitle>
-              <DrawerDescription>Filtruj karty katalogu i przejdź do produktu</DrawerDescription>
+              <DrawerTitle>Filters</DrawerTitle>
+              <DrawerDescription>Filter catalog cards and jump to a product</DrawerDescription>
             </DrawerHeader>
             <div className='overflow-y-auto px-4 pb-6'>{filterPanel}</div>
           </DrawerContent>
