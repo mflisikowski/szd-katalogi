@@ -15,7 +15,9 @@ export type FlipbookViewHandle = {
 }
 
 type FlipController = {
-  pageFlip: () => { flip: (page: number) => void; flipNext: () => void; flipPrev: () => void } | undefined
+  pageFlip: () =>
+    | { flipNext: () => void; flipPrev: () => void; turnToPage: (page: number) => void }
+    | undefined
 }
 
 type PageEntry = {
@@ -62,7 +64,9 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
     jumpToCard: (cardId) => {
       const index = startIndexByCard.get(cardId)
       if (index === undefined) return
-      flipRef.current?.pageFlip()?.flip(index)
+      // flip(n) animates but lands on the wrong spread when jumping more than
+      // one spread in two-page mode — turnToPage(n) switches instantly and reliably
+      flipRef.current?.pageFlip()?.turnToPage(index)
       setPageState({ forCards: cardsKey, page: index })
     },
   }))
