@@ -140,10 +140,8 @@ export function FlipbookView({ cards, initialCardId, onCardChange, ref }: Flipbo
           >
             {pageEntries.map((entry, index) => (
               <article className='h-full w-full overflow-hidden bg-white' key={entry.key}>
-                {/* biome-ignore lint/performance/noImgElement: deliberate — srcSet points at
-                    pre-generated Azure variants; next/image would route through Vercel image
-                    optimization (transform limits, out-of-region cold path). A spread page
-                    renders at ~450px on desktop (maxWidth 900 for two pages). */}
+                {/* eslint-disable react-doctor/nextjs-no-img-element */}
+                {/* biome-ignore lint/performance/noImgElement: deliberate — srcSet points at pre-generated Azure variants; next/image would route through Vercel image optimization (transform limits, out-of-region cold path). A spread page renders at ~450px on desktop (maxWidth 900 for two pages). */}
                 <img
                   alt={`${entry.card.title}, strona ${entry.page.pageNumber}`}
                   className='block h-full w-full'
@@ -156,6 +154,7 @@ export function FlipbookView({ cards, initialCardId, onCardChange, ref }: Flipbo
                   srcSet={entry.page.srcSet}
                   width={entry.page.width}
                 />
+                {/* eslint-enable react-doctor/nextjs-no-img-element */}
               </article>
             ))}
           </HTMLFlipBook>

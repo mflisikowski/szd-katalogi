@@ -51,7 +51,8 @@
     "payload:importMap": "payload generate:importmap",
     "payload:types": "payload generate:types",
     "registry:build": "shadcn build",
-    "start": "next start"
+    "start": "next start",
+    "doctor": "npx react-doctor@latest"
   },
   "type": "module",
   "version": "0.1.0"
