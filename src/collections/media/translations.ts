@@ -14,6 +14,10 @@ export const mediaTranslations = {
   },
   fields: {
     catalog: 'Katalog',
+    categories: {
+      description: 'Kategorie wyodrębnione z nazwy pliku (z nawiasu kwadratowego)',
+      label: 'Kategorie',
+    },
     letter: {
       description: 'Litera filtru alfabetycznego, wyliczana z tytułu',
       label: 'Litera',

@@ -6,10 +6,28 @@ function stripVersionSuffix(value: string): string {
   return value.replace(/_v\d+[a-z]?$/i, '').replace(/\bv\d+[a-z]?$/i, '')
 }
 
-/** "BEZ_CZARNY_ARONIA_ACEROLA_176_v23p.pdf" -> "BEZ CZARNY ARONIA ACEROLA 176" */
+/**
+ * "CALCIUM Z KWERCETYNĄ I WYCIĄGIEM Z BZU [WITAMINY I MINERAŁY, SEZONOWE WSPARCIE].pdf"
+ * -> "CALCIUM Z KWERCETYNĄ I WYCIĄGIEM Z BZU"
+ */
 export function titleFromFilename(fileName: string): string {
   const noExt = fileName.replace(/\.pdf$/i, '')
-  return normalizeWhitespace(stripVersionSuffix(noExt).replace(/_/g, ' '))
+  // Strip the [...] categories suffix before processing
+  const withoutCategories = noExt.replace(/\s*\[.*?\]\s*$/, '')
+  return normalizeWhitespace(stripVersionSuffix(withoutCategories).replace(/_/g, ' '))
+}
+
+/**
+ * "CALCIUM Z KWERCETYNĄ I WYCIĄGIEM Z BZU [WITAMINY I MINERAŁY, SEZONOWE WSPARCIE].pdf"
+ * -> "WITAMINY I MINERAŁY, SEZONOWE WSPARCIE"
+ *
+ * Returns null when no [...] suffix is found.
+ */
+export function categoriesFromFilename(fileName: string): string | null {
+  const noExt = fileName.replace(/\.pdf$/i, '')
+  const match = noExt.match(/\[(.+?)\]\s*$/)
+  if (!match) return null
+  return match[1].trim()
 }
 
 /** First ASCII letter of the title (diacritics folded), '#' for non-letters. */

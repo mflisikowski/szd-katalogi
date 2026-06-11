@@ -40,7 +40,7 @@ export const Catalogs: CollectionConfig = {
     {
       admin: {
         allowCreate: false,
-        defaultColumns: ['title', 'letter', 'filename', 'updatedAt'],
+        defaultColumns: ['title', 'category', 'letter', 'filename', 'updatedAt'],
       },
       collection: 'media',
       defaultLimit: 20,

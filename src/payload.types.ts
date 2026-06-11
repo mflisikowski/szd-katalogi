@@ -198,6 +198,7 @@ export interface Media {
   catalog: number | Catalog;
   letter?: string | null;
   slug?: string | null;
+  categories?: string | null;
   prefix?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -414,6 +415,7 @@ export interface MediaSelect<T extends boolean = true> {
   catalog?: T;
   letter?: T;
   slug?: T;
+  categories?: T;
   prefix?: T;
   createdAt?: T;
   updatedAt?: T;
