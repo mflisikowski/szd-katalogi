@@ -120,7 +120,7 @@ export default async function CatalogPage({ params }: PageProps) {
     pages.push({
       height: page.height,
       pageNumber: page.pageNumber,
-      url: `/api/catalog-pages/file/${page.filename}`,
+      url: `/api/catalog-pages/file/${encodeURIComponent(page.filename)}`,
       width: page.width,
     })
 
