@@ -5,6 +5,7 @@ export const catalogsTranslations = {
     preparing: 'Przygotowywanie…',
   },
   fields: {
+    categories: 'Kategorie',
     media: 'Multimedia',
     name: 'Nazwa',
     slug: 'Przyjazny URL',

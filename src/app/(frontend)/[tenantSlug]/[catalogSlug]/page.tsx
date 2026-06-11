@@ -88,6 +88,16 @@ export default async function CatalogPage({ params }: PageProps) {
     where: { catalog: { equals: catalog.id } },
   })
 
+  const { docs: categoryDocs } = await payload.find({
+    collection: 'categories',
+    depth: 0,
+    pagination: false,
+    select: { name: true },
+    where: { catalog: { equals: catalog.id } },
+  })
+
+  const categoryNames = new Map(categoryDocs.map((category) => [category.id, category.name]))
+
   const { docs: pageDocs } = docs.length
     ? await payload.find({
         collection: 'catalog-pages',
@@ -135,7 +145,13 @@ export default async function CatalogPage({ params }: PageProps) {
     pagesByMedia.set(mediaId, pages)
   }
 
-  const cards: CatalogCard[] = docs.map((doc) => ({ ...doc, pages: pagesByMedia.get(doc.id) ?? [] }))
+  const cards: CatalogCard[] = docs.map((doc) => ({
+    ...doc,
+    categories: (doc.categories ?? [])
+      .map((category) => categoryNames.get(typeof category === 'object' ? category.id : category))
+      .filter((name): name is string => Boolean(name)),
+    pages: pagesByMedia.get(doc.id) ?? [],
+  }))
 
   return <Catalog cards={cards} heading={catalog.name} subheading={tenant.name} />
 }

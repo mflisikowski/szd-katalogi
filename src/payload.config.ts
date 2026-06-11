@@ -13,6 +13,7 @@ import sharp from 'sharp'
 
 import { CatalogPages } from '@/collections/catalog-pages/config'
 import { Catalogs } from '@/collections/catalogs/config'
+import { Categories } from '@/collections/categories/config'
 import { Media } from '@/collections/media/config'
 import { Tenants } from '@/collections/tenants/config'
 import { superAdminOnlyField } from '@/collections/users/access'
@@ -32,7 +33,7 @@ export default buildConfig({
     user: Users.slug,
   },
 
-  collections: [Users, Tenants, Catalogs, Media, CatalogPages],
+  collections: [Users, Tenants, Catalogs, Categories, Media, CatalogPages],
 
   db: postgresAdapter({
     pool: {
@@ -55,6 +56,7 @@ export default buildConfig({
       collections: {
         'catalog-pages': {},
         catalogs: {},
+        categories: {},
         media: {},
       },
       // only super-admin can assign users to tenants

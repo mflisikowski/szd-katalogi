@@ -40,7 +40,20 @@ export const Catalogs: CollectionConfig = {
     {
       admin: {
         allowCreate: false,
-        defaultColumns: ['title', 'category', 'letter', 'filename', 'updatedAt'],
+        defaultColumns: ['name', 'slug', 'updatedAt'],
+      },
+      collection: 'categories',
+      defaultLimit: 20,
+      defaultSort: 'name',
+      label: ({ t }: TLabel) => t('custom:catalogs:fields:categories'),
+      name: 'categories',
+      on: 'catalog',
+      type: 'join',
+    },
+    {
+      admin: {
+        allowCreate: false,
+        defaultColumns: ['title', 'categories', 'letter', 'filename', 'updatedAt'],
       },
       collection: 'media',
       defaultLimit: 20,

@@ -12,6 +12,7 @@ export type CatalogCardPage = {
 // UI vocabulary: a "card" is one flipbook entry rendered from a media document.
 // `url` points at the source PDF and is used only for the merged-PDF export.
 export type CatalogCard = Pick<Media, 'id' | 'letter' | 'slug' | 'title' | 'url'> & {
-  categories?: string | null
+  // Category names resolved server-side from the categories collection
+  categories: string[]
   pages: CatalogCardPage[]
 }

@@ -1,6 +1,6 @@
 import type { CollectionBeforeValidateHook } from 'payload'
 
-import { categoriesFromFilename, letterFromTitle, normalizeWhitespace, slugFromTitle, titleFromFilename } from './media-title'
+import { letterFromTitle, normalizeWhitespace, slugFromTitle, titleFromFilename } from './media-title'
 
 export const hookDeriveMediaMetadata: CollectionBeforeValidateHook = ({ data, req }) => {
   if (!data) return data
@@ -10,10 +10,6 @@ export const hookDeriveMediaMetadata: CollectionBeforeValidateHook = ({ data, re
   const fileName = req.file?.name ?? (typeof data.filename === 'string' ? data.filename : undefined)
   if (!data.title && fileName) {
     data.title = titleFromFilename(fileName)
-  }
-
-  if (!data.categories && fileName) {
-    data.categories = categoriesFromFilename(fileName)
   }
 
   if (typeof data.title === 'string' && data.title.length > 0) {

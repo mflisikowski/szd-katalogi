@@ -15,7 +15,7 @@ export const mediaTranslations = {
   fields: {
     catalog: 'Katalog',
     categories: {
-      description: 'Kategorie wyodrębnione z nazwy pliku (z nawiasu kwadratowego)',
+      description: 'Tworzone automatycznie z nawiasu kwadratowego w nazwie pliku — wspólne dla całego katalogu',
       label: 'Kategorie',
     },
     letter: {

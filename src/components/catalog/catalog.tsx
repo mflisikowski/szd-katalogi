@@ -26,14 +26,6 @@ function letterSort(a: string, b: string): number {
   })
 }
 
-function parseCategories(raw: string | null | undefined): string[] {
-  if (!raw) return []
-  return raw
-    .split(',')
-    .map((c) => c.trim())
-    .filter(Boolean)
-}
-
 type CatalogProps = {
   cards: CatalogCard[]
   heading: string
@@ -51,7 +43,7 @@ export function Catalog({ cards, heading, subheading }: CatalogProps) {
 
   const uniqueCategories = new Set<string>()
   for (const card of cards) {
-    for (const cat of parseCategories(card.categories)) {
+    for (const cat of card.categories) {
       uniqueCategories.add(cat)
     }
   }
@@ -59,10 +51,7 @@ export function Catalog({ cards, heading, subheading }: CatalogProps) {
 
   const filteredCards = cards.filter((card) => {
     if (selectedLetter !== ALL_LETTERS && card.letter !== selectedLetter) return false
-    if (selectedCategory !== ALL_CATEGORIES) {
-      const cardCategories = parseCategories(card.categories)
-      if (!cardCategories.includes(selectedCategory)) return false
-    }
+    if (selectedCategory !== ALL_CATEGORIES && !card.categories.includes(selectedCategory)) return false
     return true
   })
 

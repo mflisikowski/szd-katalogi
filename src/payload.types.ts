@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     tenants: Tenant;
     catalogs: Catalog;
+    categories: Category;
     media: Media;
     'catalog-pages': CatalogPage;
     'payload-kv': PayloadKv;
@@ -79,6 +80,7 @@ export interface Config {
   };
   collectionsJoins: {
     catalogs: {
+      categories: 'categories';
       media: 'media';
     };
   };
@@ -86,6 +88,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     tenants: TenantsSelect<false> | TenantsSelect<true>;
     catalogs: CatalogsSelect<false> | CatalogsSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'catalog-pages': CatalogPagesSelect<false> | CatalogPagesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -179,11 +182,29 @@ export interface Catalog {
   tenant?: (number | null) | Tenant;
   name: string;
   slug: string;
+  categories?: {
+    docs?: (number | Category)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   media?: {
     docs?: (number | Media)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  slug?: string | null;
+  catalog: number | Catalog;
   updatedAt: string;
   createdAt: string;
 }
@@ -198,7 +219,7 @@ export interface Media {
   catalog: number | Catalog;
   letter?: string | null;
   slug?: string | null;
-  categories?: string | null;
+  categories?: (number | Category)[] | null;
   prefix?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -305,6 +326,10 @@ export interface PayloadLockedDocument {
         value: number | Catalog;
       } | null)
     | ({
+        relationTo: 'categories';
+        value: number | Category;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -401,7 +426,20 @@ export interface CatalogsSelect<T extends boolean = true> {
   tenant?: T;
   name?: T;
   slug?: T;
+  categories?: T;
   media?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  tenant?: T;
+  name?: T;
+  slug?: T;
+  catalog?: T;
   updatedAt?: T;
   createdAt?: T;
 }

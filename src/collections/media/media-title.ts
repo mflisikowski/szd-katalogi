@@ -19,15 +19,18 @@ export function titleFromFilename(fileName: string): string {
 
 /**
  * "CALCIUM Z KWERCETYNĄ I WYCIĄGIEM Z BZU [WITAMINY I MINERAŁY, SEZONOWE WSPARCIE].pdf"
- * -> "WITAMINY I MINERAŁY, SEZONOWE WSPARCIE"
+ * -> ["WITAMINY I MINERAŁY", "SEZONOWE WSPARCIE"]
  *
- * Returns null when no [...] suffix is found.
+ * Returns an empty array when no [...] suffix is found.
  */
-export function categoriesFromFilename(fileName: string): string | null {
+export function categoriesFromFilename(fileName: string): string[] {
   const noExt = fileName.replace(/\.pdf$/i, '')
   const match = noExt.match(/\[(.+?)\]\s*$/)
-  if (!match) return null
-  return match[1].trim()
+  if (!match) return []
+  return match[1]
+    .split(',')
+    .map((name) => normalizeWhitespace(name))
+    .filter(Boolean)
 }
 
 /** First ASCII letter of the title (diacritics folded), '#' for non-letters. */
