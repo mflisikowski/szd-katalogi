@@ -98,6 +98,11 @@ export default async function CatalogPage({ params }: PageProps) {
           height: true,
           media: true,
           pageNumber: true,
+          sizes: {
+            mobile: {
+              filename: true,
+            },
+          },
           width: true,
         },
         sort: 'pageNumber',
@@ -120,6 +125,9 @@ export default async function CatalogPage({ params }: PageProps) {
     pages.push({
       height: page.height,
       pageNumber: page.pageNumber,
+      thumbUrl: page.sizes?.mobile?.filename
+        ? `/api/catalog-pages/file/${encodeURIComponent(page.sizes.mobile.filename)}`
+        : undefined,
       url: `/api/catalog-pages/file/${encodeURIComponent(page.filename)}`,
       width: page.width,
     })
