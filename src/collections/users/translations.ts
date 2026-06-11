@@ -1,6 +1,7 @@
 export const usersTranslations = {
   fields: {
     roles: {
+      admin: 'Administrator',
       label: 'Role',
       superAdmin: 'Super Administrator',
       user: 'Użytkownik',

@@ -14,6 +14,7 @@ import sharp from 'sharp'
 import { Catalogs } from '@/collections/catalogs/config'
 import { Media } from '@/collections/media/config'
 import { Tenants } from '@/collections/tenants/config'
+import { superAdminOnlyField } from '@/collections/users/access'
 import { Users } from '@/collections/users/config'
 import { env } from '@/env'
 import { translations } from '@/translations'
@@ -54,8 +55,18 @@ export default buildConfig({
         catalogs: {},
         media: {},
       },
+      // only super-admin can assign users to tenants
+      tenantsArrayField: {
+        arrayFieldAccess: {
+          create: superAdminOnlyField,
+          update: superAdminOnlyField,
+        },
+      },
       tenantsSlug: Tenants.slug,
       userHasAccessToAllTenants: (user) => Boolean(user.roles?.includes('super-admin')),
+      // tenant selection in the selector does not filter the user list —
+      // without this, super-admin with a selected tenant sees an empty list
+      useUsersTenantFilter: false,
     }),
 
     azureStorage({

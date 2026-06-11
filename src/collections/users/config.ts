@@ -1,8 +1,19 @@
 import type { CollectionConfig } from 'payload'
 import type { TLabel } from '@/translations'
 
+import { hasRole, readUsers, superAdminOnly, superAdminOnlyField, updateUsers } from './access'
+
 export const Users: CollectionConfig = {
+  access: {
+    create: superAdminOnly,
+    delete: superAdminOnly,
+    read: readUsers,
+    unlock: superAdminOnly,
+    update: updateUsers,
+  },
+
   admin: {
+    hidden: ({ user }) => !(hasRole(user, 'super-admin') || hasRole(user, 'admin')),
     useAsTitle: 'email',
   },
 
@@ -10,6 +21,10 @@ export const Users: CollectionConfig = {
 
   fields: [
     {
+      access: {
+        create: superAdminOnlyField,
+        update: superAdminOnlyField,
+      },
       defaultValue: ['user'],
       hasMany: true,
       label: ({ t }: TLabel) => t('custom:users:fields:roles:label'),
@@ -18,6 +33,10 @@ export const Users: CollectionConfig = {
         {
           label: ({ t }: TLabel) => t('custom:users:fields:roles:superAdmin'),
           value: 'super-admin',
+        },
+        {
+          label: ({ t }: TLabel) => t('custom:users:fields:roles:admin'),
+          value: 'admin',
         },
         {
           label: ({ t }: TLabel) => t('custom:users:fields:roles:user'),
