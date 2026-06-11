@@ -4,7 +4,7 @@ import type { Ref } from 'react'
 import type { CatalogCard } from './types'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { useEffect, useImperativeHandle, useRef, useState } from 'react'
 import HTMLFlipBook from 'react-pageflip'
 
 import { Button } from '@/components/ui/button'
@@ -30,15 +30,25 @@ const DEFAULT_DIMENSIONS = { height: 780, width: 560 }
 
 export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<FlipbookViewHandle> }) {
   const flipRef = useRef<FlipController>(null)
-  const [pageCounts, setPageCounts] = useState<Record<CatalogCard['id'], number>>({})
-  const [dimensions, setDimensions] = useState(DEFAULT_DIMENSIONS)
-  const [currentPage, setCurrentPage] = useState(0)
+  const renderableCards = cards.filter((card) => Boolean(card.url))
+  const cardsKey = renderableCards.map((card) => card.id).join('|')
 
-  const renderableCards = useMemo(() => cards.filter((card) => Boolean(card.url)), [cards])
+  // Async-loaded page counts and the current page are stored together with the
+  // card set they were produced for; a different card set invalidates them by
+  // derivation, so no effect has to reset state when the prop changes.
+  const [pageCountsState, setPageCountsState] = useState<{
+    counts: Record<CatalogCard['id'], number>
+    forCards: string
+  }>({ counts: {}, forCards: '' })
+  const [pageState, setPageState] = useState({ forCards: '', page: 0 })
+  const [dimensions, setDimensions] = useState(DEFAULT_DIMENSIONS)
+
+  const pageCounts = pageCountsState.forCards === cardsKey ? pageCountsState.counts : {}
+  const currentPage = pageState.forCards === cardsKey ? pageState.page : 0
 
   useEffect(() => {
+    if (renderableCards.length === 0) return
     let cancelled = false
-    setCurrentPage(0)
 
     async function loadPageCounts() {
       const result: Record<CatalogCard['id'], number> = {}
@@ -53,19 +63,15 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
           }
         }),
       )
-      if (!cancelled) setPageCounts(result)
+      if (!cancelled) setPageCountsState({ counts: result, forCards: cardsKey })
     }
 
-    if (renderableCards.length > 0) {
-      loadPageCounts()
-    } else {
-      setPageCounts({})
-    }
+    loadPageCounts()
 
     return () => {
       cancelled = true
     }
-  }, [renderableCards])
+  }, [renderableCards, cardsKey])
 
   useEffect(() => {
     const first = renderableCards[0]
@@ -95,43 +101,33 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
     }
   }, [renderableCards])
 
-  const pageEntries = useMemo<PageEntry[]>(() => {
-    const entries: PageEntry[] = []
-    for (const card of renderableCards) {
-      const pageCount = pageCounts[card.id]
-      if (!pageCount) continue
-      for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
-        entries.push({ card, key: `${card.id}-p${pageNumber}`, pageNumber })
-      }
+  const pageEntries: PageEntry[] = []
+  for (const card of renderableCards) {
+    const pageCount = pageCounts[card.id]
+    if (!pageCount) continue
+    for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
+      pageEntries.push({ card, key: `${card.id}-p${pageNumber}`, pageNumber })
     }
-    return entries
-  }, [renderableCards, pageCounts])
+  }
 
-  const startIndexByCard = useMemo(() => {
-    const map = new Map<CatalogCard['id'], number>()
-    pageEntries.forEach((entry, index) => {
-      if (!map.has(entry.card.id)) map.set(entry.card.id, index)
-    })
-    return map
-  }, [pageEntries])
+  const startIndexByCard = new Map<CatalogCard['id'], number>()
+  pageEntries.forEach((entry, index) => {
+    if (!startIndexByCard.has(entry.card.id)) startIndexByCard.set(entry.card.id, index)
+  })
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      jumpToCard: (cardId) => {
-        const index = startIndexByCard.get(cardId)
-        if (index === undefined) return
-        flipRef.current?.pageFlip()?.flip(index)
-        setCurrentPage(index)
-      },
-    }),
-    [startIndexByCard],
-  )
+  useImperativeHandle(ref, () => ({
+    jumpToCard: (cardId) => {
+      const index = startIndexByCard.get(cardId)
+      if (index === undefined) return
+      flipRef.current?.pageFlip()?.flip(index)
+      setPageState({ forCards: cardsKey, page: index })
+    },
+  }))
 
   const pageCountsReady = renderableCards.every((card) => Number.isInteger(pageCounts[card.id]))
 
   // Remount flipbook when the page set changes — the library does not support dynamic children
-  const flipbookKey = `${renderableCards.map((card) => card.id).join('|')}-${pageEntries.length}`
+  const flipbookKey = `${cardsKey}-${pageEntries.length}`
 
   return (
     <div className='flex h-full flex-col gap-3'>
@@ -146,7 +142,7 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
 
       <div className='relative flex flex-1 items-center justify-center overflow-hidden rounded-lg border bg-muted/40 p-2 md:p-4'>
         {!pageCountsReady ? (
-          <Skeleton className='aspect-[5/7] w-full max-w-md' />
+          <Skeleton className='aspect-5/7 w-full max-w-md' />
         ) : pageEntries.length === 0 ? (
           <p className='text-muted-foreground text-sm'>No pages to display.</p>
         ) : (
@@ -165,7 +161,7 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
             minHeight={440}
             minWidth={290}
             mobileScrollSupport
-            onFlip={(event: { data: number }) => setCurrentPage(event.data)}
+            onFlip={(event: { data: number }) => setPageState({ forCards: cardsKey, page: event.data })}
             ref={flipRef}
             showCover={false}
             showPageCorners

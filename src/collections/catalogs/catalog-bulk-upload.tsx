@@ -13,7 +13,7 @@ import {
   useTranslation,
 } from '@payloadcms/ui'
 import { useRouter } from 'next/navigation'
-import { useCallback, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 
 /**
  * Button "Wgraj partię PDF" in the catalog view: opens the native Payload bulk upload drawer
@@ -32,61 +32,49 @@ export function CatalogBulkUpload() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isPreparing, setIsPreparing] = useState(false)
 
-  const openDrawerWithFiles = useCallback(
-    async (files: File[]) => {
-      if (!catalogID || files.length === 0) return
+  async function openDrawerWithFiles(files: File[]) {
+    if (!catalogID || files.length === 0) return
 
-      setIsPreparing(true)
-      try {
-        // initialState per file replaces (does not merge) the shared drawer state,
-        // so we build the full 'create' state server-side, with the catalog already set.
-        const { state } = await getFormState({
-          collectionSlug: 'media',
-          data: { catalog: catalogID },
-          // Form state only renders fields — actual permissions are enforced by the server on save
-          docPermissions: { create: true, fields: true, read: true, update: true },
-          docPreferences: { fields: {} },
-          operation: 'create',
-          renderAllFields: true,
-          schemaPath: 'media',
-          skipValidation: true,
-        })
+    setIsPreparing(true)
 
-        if (!state) throw new Error('empty form state')
+    // initialState per file replaces (does not merge) the shared drawer state,
+    // so we build the full 'create' state server-side, with the catalog already set.
+    const formState = await getFormState({
+      collectionSlug: 'media',
+      data: { catalog: catalogID },
+      // Form state only renders fields — actual permissions are enforced by the server on save
+      docPermissions: { create: true, fields: true, read: true, update: true },
+      docPreferences: { fields: {} },
+      operation: 'create',
+      renderAllFields: true,
+      schemaPath: 'media',
+      skipValidation: true,
+    }).catch(() => null)
 
-        const catalogField = { ...state.catalog, initialValue: catalogID, valid: true, value: catalogID }
+    const state = formState?.state
 
-        setCollectionSlug('media')
-        setInitialForms(
-          files.map((file) => ({
-            file,
-            initialState: { ...state, catalog: catalogField } as FormState,
-          })),
-        )
-        setOnSuccess(() => router.refresh())
-        // On partial save (duplicates) the drawer stays open and the editor closes it manually
-        // — refresh the media list also then
-        setOnCancel(() => router.refresh())
-        openModal(drawerSlug)
-      } catch {
-        toast.error(t('custom:catalogs:bulkUpload:error'))
-      } finally {
-        setIsPreparing(false)
-      }
-    },
-    [
-      catalogID,
-      getFormState,
-      setCollectionSlug,
-      setInitialForms,
-      setOnCancel,
-      setOnSuccess,
-      openModal,
-      drawerSlug,
-      router,
-      t,
-    ],
-  )
+    if (!state) {
+      toast.error(t('custom:catalogs:bulkUpload:error'))
+      setIsPreparing(false)
+      return
+    }
+
+    const catalogField = { ...state.catalog, initialValue: catalogID, valid: true, value: catalogID }
+
+    setCollectionSlug('media')
+    setInitialForms(
+      files.map((file) => ({
+        file,
+        initialState: { ...state, catalog: catalogField } as FormState,
+      })),
+    )
+    setOnSuccess(() => router.refresh())
+    // On partial save (duplicates) the drawer stays open and the editor closes it manually
+    // — refresh the media list also then
+    setOnCancel(() => router.refresh())
+    openModal(drawerSlug)
+    setIsPreparing(false)
+  }
 
   // A new, unsaved catalog has no ID — nothing to attach media to
   if (!catalogID) return null
@@ -98,6 +86,7 @@ export function CatalogBulkUpload() {
       </Button>
       <input
         accept='application/pdf'
+        aria-label={t('custom:catalogs:bulkUpload:button')}
         hidden
         multiple
         onChange={(event) => {

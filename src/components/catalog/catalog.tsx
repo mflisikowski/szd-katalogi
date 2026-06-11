@@ -3,7 +3,7 @@
 import type { CatalogCard } from './types'
 
 import { SlidersHorizontal } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -36,15 +36,10 @@ export function Catalog({ cards, heading, subheading }: CatalogProps) {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const flipbookRef = useRef<FlipbookViewHandle>(null)
 
-  const letters = useMemo(() => {
-    const uniq = new Set(cards.map((card) => card.letter).filter((letter): letter is string => Boolean(letter)))
-    return Array.from(uniq).sort(letterSort)
-  }, [cards])
+  const uniqueLetters = new Set(cards.map((card) => card.letter).filter((letter): letter is string => Boolean(letter)))
+  const letters = Array.from(uniqueLetters).sort(letterSort)
 
-  const filteredCards = useMemo(() => {
-    if (selectedLetter === ALL_LETTERS) return cards
-    return cards.filter((card) => card.letter === selectedLetter)
-  }, [cards, selectedLetter])
+  const filteredCards = selectedLetter === ALL_LETTERS ? cards : cards.filter((card) => card.letter === selectedLetter)
 
   function handleSelectLetter(letter: string) {
     setSelectedLetter(letter)
