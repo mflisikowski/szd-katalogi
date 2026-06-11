@@ -30,9 +30,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - uses: millionco/react-doctor@v2
-        # Common configuration knobs — uncomment any to override the default.
+        id: doctor
         # Full reference: https://www.react.doctor/ci
         # with:
         #   blocking: warning        # Gate level: "error" (default) | "warning" | "none" (advisory)
@@ -43,3 +45,46 @@ jobs:
         #   version: "0.4.0"         # Pin to a specific react-doctor version instead of "latest"
         #   directory: apps/web      # Scan a sub-directory (default: ".")
         #   project: "web,admin"     # In a monorepo, scan specific workspace project(s)
+
+      - name: Publish detailed findings to job summary
+        if: always()
+        env:
+          RD_SCORE: ${{ steps.doctor.outputs.score }}
+        run: |
+          node -e '
+            const cp = require("child_process");
+            const fs = require("fs");
+            let report;
+            try {
+              const out = cp.execSync("npx react-doctor@latest --json --no-score --no-color 2>/dev/null", { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+              report = JSON.parse(out);
+            } catch {
+              fs.writeFileSync(process.env.GITHUB_STEP_SUMMARY, "## React Doctor Findings\n\nCould not retrieve detailed report.");
+              process.exit(0);
+            }
+            const lines = ["## React Doctor Findings"];
+
+            const s = report.summary || {};
+            lines.push("");
+            lines.push("**Score:** " + (process.env.RD_SCORE || s.score || "N/A") + " | **Errors:** " + s.errorCount + " | **Warnings:** " + s.warningCount + " | **Files:** " + s.affectedFileCount);
+
+            const allDiags = report.diagnostics ?? [];
+            if (allDiags.length > 0) {
+              lines.push("");
+              lines.push("### Diagnostics");
+              lines.push("");
+              lines.push("| File | Severity | Rule | Message |");
+              lines.push("|------|----------|------|---------|");
+              for (const d of allDiags) {
+                const loc = d.file + (d.line != null ? ":" + d.line : "");
+                const rule = d.rule || d.code || "";
+                const msg = (d.message || "").replace(/\|/g, "&#124;");
+                lines.push("| `" + loc + "` | " + (d.severity || "error") + " | `" + rule + "` | " + msg + " |");
+              }
+            } else {
+              lines.push("");
+              lines.push(":white_check_mark: No issues found.");
+            }
+
+            fs.writeFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+          '
