@@ -1,4 +1,16 @@
 import type { Media } from '@/payload.types'
 
-// UI vocabulary: a "card" is one flipbook entry rendered from a media document
-export type CatalogCard = Pick<Media, 'id' | 'letter' | 'slug' | 'title' | 'url'>
+// One pre-rendered WebP page of a card's PDF (see the catalog-pages collection)
+export type CatalogCardPage = {
+  height: number
+  pageNumber: number
+  thumbUrl?: null | string
+  url: string
+  width: number
+}
+
+// UI vocabulary: a "card" is one flipbook entry rendered from a media document.
+// `url` points at the source PDF and is used only for the merged-PDF export.
+export type CatalogCard = Pick<Media, 'id' | 'letter' | 'slug' | 'title' | 'url'> & {
+  pages: CatalogCardPage[]
+}

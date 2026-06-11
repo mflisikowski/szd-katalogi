@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/drawer'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { ExportPdfButton } from './export-pdf-button'
 import { ALL_LETTERS, FilterPanel } from './filter-panel'
 import { FlipbookView, type FlipbookViewHandle } from './flipbook-view'
 
@@ -52,13 +53,19 @@ export function Catalog({ cards, heading, subheading }: CatalogProps) {
   }
 
   const filterPanel = (
-    <FilterPanel
-      cards={filteredCards}
-      letters={letters}
-      onJumpToCard={handleJumpToCard}
-      onSelectLetter={handleSelectLetter}
-      selectedLetter={selectedLetter}
-    />
+    <>
+      <ExportPdfButton
+        cards={filteredCards}
+        filterLabel={selectedLetter === ALL_LETTERS ? undefined : selectedLetter}
+      />
+      <FilterPanel
+        cards={filteredCards}
+        letters={letters}
+        onJumpToCard={handleJumpToCard}
+        onSelectLetter={handleSelectLetter}
+        selectedLetter={selectedLetter}
+      />
+    </>
   )
 
   return (

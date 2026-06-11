@@ -1,16 +1,14 @@
 'use client'
 
 import type { Ref } from 'react'
-import type { CatalogCard } from './types'
+import type { CatalogCard, CatalogCardPage } from './types'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useImperativeHandle, useRef, useState } from 'react'
+import Image from 'next/image'
+import { useImperativeHandle, useRef, useState } from 'react'
 import HTMLFlipBook from 'react-pageflip'
 
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { loadPdf } from '@/lib/pdf-client'
-import { PdfPageCanvas } from './pdf-page-canvas'
 
 export type FlipbookViewHandle = {
   jumpToCard: (cardId: CatalogCard['id']) => void
@@ -23,92 +21,37 @@ type FlipController = {
 type PageEntry = {
   card: CatalogCard
   key: string
-  pageNumber: number
+  page: CatalogCardPage
 }
 
 const DEFAULT_DIMENSIONS = { height: 780, width: 560 }
 
+function flipbookDimensions(firstPage: CatalogCardPage | undefined) {
+  if (!firstPage) return DEFAULT_DIMENSIONS
+  // Normalize to practical viewport size while preserving page aspect ratio
+  const scale = DEFAULT_DIMENSIONS.height / firstPage.height
+  return {
+    height: Math.max(420, Math.round(firstPage.height * scale)),
+    width: Math.max(300, Math.round(firstPage.width * scale)),
+  }
+}
+
 export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<FlipbookViewHandle> }) {
   const flipRef = useRef<FlipController>(null)
-  const renderableCards = cards.filter((card) => Boolean(card.url))
+  const renderableCards = cards.filter((card) => card.pages.length > 0)
   const cardsKey = renderableCards.map((card) => card.id).join('|')
 
-  // Async-loaded page counts and the current page are stored together with the
-  // card set they were produced for; a different card set invalidates them by
-  // derivation, so no effect has to reset state when the prop changes.
-  const [pageCountsState, setPageCountsState] = useState<{
-    counts: Record<CatalogCard['id'], number>
-    forCards: string
-  }>({ counts: {}, forCards: '' })
+  // The current page is stored together with the card set it was produced for;
+  // a different card set invalidates it by derivation, so no effect has to
+  // reset state when the prop changes.
   const [pageState, setPageState] = useState({ forCards: '', page: 0 })
-  const [dimensions, setDimensions] = useState(DEFAULT_DIMENSIONS)
-
-  const pageCounts = pageCountsState.forCards === cardsKey ? pageCountsState.counts : {}
   const currentPage = pageState.forCards === cardsKey ? pageState.page : 0
 
-  useEffect(() => {
-    if (renderableCards.length === 0) return
-    let cancelled = false
+  const pageEntries: PageEntry[] = renderableCards.flatMap((card) =>
+    card.pages.map((page) => ({ card, key: `${card.id}-p${page.pageNumber}`, page })),
+  )
 
-    async function loadPageCounts() {
-      const result: Record<CatalogCard['id'], number> = {}
-      await Promise.all(
-        renderableCards.map(async (card) => {
-          try {
-            const doc = await loadPdf(card.url as string)
-            result[card.id] = doc.numPages
-          } catch (error) {
-            console.error('Failed to read page count', card.title, error)
-            result[card.id] = 1
-          }
-        }),
-      )
-      if (!cancelled) setPageCountsState({ counts: result, forCards: cardsKey })
-    }
-
-    loadPageCounts()
-
-    return () => {
-      cancelled = true
-    }
-  }, [renderableCards, cardsKey])
-
-  useEffect(() => {
-    const first = renderableCards[0]
-    if (!first?.url) return
-    let cancelled = false
-
-    loadPdf(first.url)
-      .then(async (doc) => {
-        const page = await doc.getPage(1)
-        const viewport = page.getViewport({ scale: 1 })
-        // Normalize to practical viewport size while preserving PDF aspect ratio
-        const scale = DEFAULT_DIMENSIONS.height / viewport.height
-        if (!cancelled) {
-          setDimensions({
-            height: Math.max(420, Math.round(viewport.height * scale)),
-            width: Math.max(300, Math.round(viewport.width * scale)),
-          })
-        }
-      })
-      .catch((error) => {
-        console.error('Failed to read PDF page dimensions', error)
-        if (!cancelled) setDimensions(DEFAULT_DIMENSIONS)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [renderableCards])
-
-  const pageEntries: PageEntry[] = []
-  for (const card of renderableCards) {
-    const pageCount = pageCounts[card.id]
-    if (!pageCount) continue
-    for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
-      pageEntries.push({ card, key: `${card.id}-p${pageNumber}`, pageNumber })
-    }
-  }
+  const dimensions = flipbookDimensions(pageEntries[0]?.page)
 
   const startIndexByCard = new Map<CatalogCard['id'], number>()
   pageEntries.forEach((entry, index) => {
@@ -123,8 +66,6 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
       setPageState({ forCards: cardsKey, page: index })
     },
   }))
-
-  const pageCountsReady = renderableCards.every((card) => Number.isInteger(pageCounts[card.id]))
 
   // Remount flipbook when the page set changes — the library does not support dynamic children
   const flipbookKey = `${cardsKey}-${pageEntries.length}`
@@ -141,9 +82,7 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
       </div>
 
       <div className='relative flex flex-1 items-center justify-center overflow-hidden rounded-lg border bg-muted/40 p-2 md:p-4'>
-        {!pageCountsReady ? (
-          <Skeleton className='aspect-5/7 w-full max-w-md' />
-        ) : pageEntries.length === 0 ? (
+        {pageEntries.length === 0 ? (
           <p className='text-muted-foreground text-sm'>No pages to display.</p>
         ) : (
           <HTMLFlipBook
@@ -174,9 +113,17 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
             usePortrait
             width={dimensions.width}
           >
-            {pageEntries.map((entry) => (
-              <article className='h-full w-full' key={entry.key}>
-                <PdfPageCanvas pageNumber={entry.pageNumber} title={entry.card.title} url={entry.card.url as string} />
+            {pageEntries.map((entry, index) => (
+              <article className='h-full w-full overflow-hidden bg-white' key={entry.key}>
+                <Image
+                  alt={`${entry.card.title}, strona ${entry.page.pageNumber}`}
+                  className='block h-full w-full'
+                  height={entry.page.height}
+                  loading={index === 0 ? undefined : 'lazy'}
+                  priority={index === 0}
+                  src={entry.page.url}
+                  width={entry.page.width}
+                />
               </article>
             ))}
           </HTMLFlipBook>

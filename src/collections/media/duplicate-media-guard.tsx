@@ -13,20 +13,10 @@ import {
   useModal,
   useTranslation,
 } from '@payloadcms/ui'
-import { useEffect, useState } from 'react'
+
+import { useDuplicateCheck } from './use-duplicate-check'
 
 const MODAL_SLUG = 'duplicate-media-guard'
-
-type Duplicate = {
-  id: number | string
-  title: string
-}
-
-type DuplicateCheck = {
-  doc: Duplicate | null
-  forCatalog: number | string
-  forTitle: string
-}
 
 /**
  * Proactive warning in the media edit view: before the editor saves, it checks
@@ -43,42 +33,9 @@ export function DuplicateMediaGuard() {
   const title = useFormFields(([fields]) => fields?.title?.value as string | undefined)
   const catalog = useFormFields(([fields]) => fields?.catalog?.value as number | string | undefined)
 
-  // The check result remembers which title/catalog it was fetched for, so editing
-  // either field invalidates it by derivation — no effect has to reset state.
-  const [check, setCheck] = useState<DuplicateCheck | null>(null)
-  const duplicate = check && check.forTitle === title && check.forCatalog === catalog ? check.doc : null
-
   const apiBase = `${config.serverURL ?? ''}${config.routes.api}`
-
-  useEffect(() => {
-    if (!title || !catalog) return
-
-    const forTitle = title
-    const forCatalog = catalog
-    const controller = new AbortController()
-    const conditions: Record<string, unknown>[] = [{ title: { equals: title } }, { catalog: { equals: catalog } }]
-
-    if (currentId) conditions.push({ id: { not_equals: currentId } })
-
-    const query = encodeURIComponent(JSON.stringify({ and: conditions }))
-
-    async function runCheck() {
-      try {
-        const res = await fetch(`${apiBase}/media?depth=0&limit=1&where=${query}`, {
-          credentials: 'include',
-          signal: controller.signal,
-        })
-        if (!res.ok) return
-        const data = (await res.json()) as { docs: Duplicate[] }
-        setCheck({ doc: data.docs[0] ?? null, forCatalog, forTitle })
-      } catch {
-        // canceled fetch / network error — no warning, server hook will block the save anyway
-      }
-    }
-
-    void runCheck()
-    return () => controller.abort()
-  }, [title, catalog, currentId, apiBase])
+  const { check, clear } = useDuplicateCheck(title, catalog, currentId, apiBase)
+  const duplicate = check && check.forTitle === title && check.forCatalog === catalog ? check.doc : null
 
   async function handleDelete() {
     if (!duplicate) return
@@ -94,7 +51,7 @@ export function DuplicateMediaGuard() {
     }
 
     toast.success(t('custom:media:duplicateGuard:deleteSuccess', { title: duplicate.title }))
-    setCheck((prev) => (prev ? { ...prev, doc: null } : prev))
+    clear()
     closeModal(MODAL_SLUG)
   }
 

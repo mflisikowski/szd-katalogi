@@ -3,6 +3,7 @@ import type { TLabel } from '@/translations'
 
 import { hookSetCatalogPrefix } from './media-catalog-prefix-hook'
 import { hookDeriveMediaMetadata } from './media-derive-metadata-hook'
+import { hookDeleteCatalogPages, hookGenerateCatalogPages } from './media-generate-pages-hook'
 import { hookEnsureUniqueTitleInCatalog } from './media-unique-title-hook'
 
 export const Media: CollectionConfig = {
@@ -127,6 +128,8 @@ export const Media: CollectionConfig = {
   ],
 
   hooks: {
+    afterChange: [hookGenerateCatalogPages],
+    beforeDelete: [hookDeleteCatalogPages],
     beforeOperation: [hookSetCatalogPrefix],
     // Order matters: anti-duplicate relies on computed data.title
     beforeValidate: [hookDeriveMediaMetadata, hookEnsureUniqueTitleInCatalog],

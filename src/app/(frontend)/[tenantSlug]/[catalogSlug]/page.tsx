@@ -76,8 +76,7 @@ export default async function CatalogPage({ params }: PageProps) {
     limit: 500,
     pagination: false,
     select: {
-      // _key and filename are needed by the storage adapter to generate the url in afterRead
-      _key: true,
+      // filename is needed by the storage adapter to generate the url in afterRead
       filename: true,
       letter: true,
       slug: true,
@@ -88,7 +87,46 @@ export default async function CatalogPage({ params }: PageProps) {
     where: { catalog: { equals: catalog.id } },
   })
 
-  const cards: CatalogCard[] = docs
+  const { docs: pageDocs } = docs.length
+    ? await payload.find({
+        collection: 'catalog-pages',
+        depth: 0,
+        pagination: false,
+        select: {
+          filename: true,
+          height: true,
+          media: true,
+          pageNumber: true,
+          width: true,
+        },
+        sort: 'pageNumber',
+        where: {
+          media: {
+            in: docs.map((doc) => doc.id),
+          },
+        },
+      })
+    : { docs: [] }
+
+  const pagesByMedia = new Map<number, CatalogCard['pages']>()
+
+  for (const page of pageDocs) {
+    if (!page.filename || !page.width || !page.height) continue
+
+    const mediaId = typeof page.media === 'object' ? page.media.id : page.media
+    const pages = pagesByMedia.get(mediaId) ?? []
+
+    pages.push({
+      height: page.height,
+      pageNumber: page.pageNumber,
+      url: `/api/catalog-pages/file/${page.filename}`,
+      width: page.width,
+    })
+
+    pagesByMedia.set(mediaId, pages)
+  }
+
+  const cards: CatalogCard[] = docs.map((doc) => ({ ...doc, pages: pagesByMedia.get(doc.id) ?? [] }))
 
   return <Catalog cards={cards} heading={catalog.name} subheading={tenant.name} />
 }

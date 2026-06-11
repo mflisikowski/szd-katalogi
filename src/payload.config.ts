@@ -11,6 +11,7 @@ import { pl } from '@payloadcms/translations/languages/pl'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
+import { CatalogPages } from '@/collections/catalog-pages/config'
 import { Catalogs } from '@/collections/catalogs/config'
 import { Media } from '@/collections/media/config'
 import { Tenants } from '@/collections/tenants/config'
@@ -31,7 +32,7 @@ export default buildConfig({
     user: Users.slug,
   },
 
-  collections: [Users, Tenants, Catalogs, Media],
+  collections: [Users, Tenants, Catalogs, Media, CatalogPages],
 
   db: postgresAdapter({
     pool: {
@@ -52,6 +53,7 @@ export default buildConfig({
   plugins: [
     multiTenantPlugin<Config>({
       collections: {
+        'catalog-pages': {},
         catalogs: {},
         media: {},
       },
@@ -73,6 +75,7 @@ export default buildConfig({
       allowContainerCreate: false,
       baseURL: env.AZURE_STORAGE_ACCOUNT_BASEURL,
       collections: {
+        'catalog-pages': true,
         media: true,
       },
       connectionString: env.AZURE_STORAGE_CONNECTION_STRING,
