@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Geist_Mono, Montserrat } from 'next/font/google'
 import './globals.css'
 import { cn } from '@/lib/utils'
+import { NuqsWrapper } from './nuqs-wrapper'
 
 const montserrat = Montserrat({
   subsets: ['latin', 'latin-ext'],
@@ -26,7 +27,9 @@ export default function RootLayout({
 }>) {
   return (
     <html className={cn('h-full', 'antialiased', montserrat.variable, geistMono.variable, 'font-sans')} lang='en'>
-      <body className='flex min-h-full flex-col'>{children}</body>
+      <body className='flex min-h-full flex-col'>
+        <NuqsWrapper>{children}</NuqsWrapper>
+      </body>
     </html>
   )
 }

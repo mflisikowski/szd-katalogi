@@ -3,6 +3,7 @@
 import type { CatalogCard } from './types'
 
 import { SlidersHorizontal } from 'lucide-react'
+import { parseAsString, useQueryState } from 'nuqs'
 import { useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -33,8 +34,15 @@ type CatalogProps = {
 }
 
 export function Catalog({ cards, heading, subheading }: CatalogProps) {
-  const [selectedLetter, setSelectedLetter] = useState(ALL_LETTERS)
-  const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES)
+  const [selectedLetter, setSelectedLetter] = useQueryState(
+    'litera',
+    parseAsString.withDefault(ALL_LETTERS).withOptions({ clearOnDefault: true, history: 'replace' }),
+  )
+  const [selectedCategory, setSelectedCategory] = useQueryState(
+    'kategoria',
+    parseAsString.withDefault(ALL_CATEGORIES).withOptions({ clearOnDefault: true, history: 'replace' }),
+  )
+  const [cardParam, setCardParam] = useQueryState('karta', parseAsString.withOptions({ history: 'replace' }))
   const [filtersOpen, setFiltersOpen] = useState(false)
   const flipbookRef = useRef<FlipbookViewHandle>(null)
 
@@ -63,6 +71,10 @@ export function Catalog({ cards, heading, subheading }: CatalogProps) {
   function handleSelectCategory(category: string) {
     setSelectedCategory(category)
     setFiltersOpen(false)
+  }
+
+  function handleCardChange(cardId: string) {
+    setCardParam(cardId)
   }
 
   function handleJumpToCard(cardId: CatalogCard['id']) {
@@ -114,7 +126,12 @@ export function Catalog({ cards, heading, subheading }: CatalogProps) {
             </EmptyHeader>
           </Empty>
         ) : (
-          <FlipbookView cards={filteredCards} ref={flipbookRef} />
+          <FlipbookView
+            cards={filteredCards}
+            initialCardId={cardParam ?? undefined}
+            onCardChange={handleCardChange}
+            ref={flipbookRef}
+          />
         )}
       </main>
 

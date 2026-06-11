@@ -35,16 +35,18 @@ function flipbookDimensions(firstPage: CatalogCardPage | undefined) {
   }
 }
 
-export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<FlipbookViewHandle> }) {
+type FlipbookViewProps = {
+  cards: CatalogCard[]
+  initialCardId?: string
+  onCardChange?: (cardId: string) => void
+  ref?: Ref<FlipbookViewHandle>
+}
+
+export function FlipbookView({ cards, initialCardId, onCardChange, ref }: FlipbookViewProps) {
   const flipRef = useRef<FlipController>(null)
+  const lastReportedCardRef = useRef<string | null>(null)
   const renderableCards = cards.filter((card) => card.pages.length > 0)
   const cardsKey = renderableCards.map((card) => card.id).join('|')
-
-  // The current page is stored together with the card set it was produced for;
-  // a different card set invalidates it by derivation, so no effect has to
-  // reset state when the prop changes.
-  const [pageState, setPageState] = useState({ forCards: '', page: 0 })
-  const currentPage = pageState.forCards === cardsKey ? pageState.page : 0
 
   const pageEntries: PageEntry[] = renderableCards.flatMap((card) =>
     card.pages.map((page) => ({ card, key: `${card.id}-p${page.pageNumber}`, page })),
@@ -57,14 +59,33 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
     if (!startIndexByCard.has(entry.card.id)) startIndexByCard.set(entry.card.id, index)
   })
 
+  const [pageState, setPageState] = useState(() => {
+    if (!initialCardId) return { forCards: '', page: 0 } as const
+    const card = renderableCards.find((c) => c.slug === initialCardId || String(c.id) === initialCardId)
+    if (!card) return { forCards: '', page: 0 } as const
+    const index = startIndexByCard.get(card.id)
+    if (index === undefined) return { forCards: '', page: 0 } as const
+    return { forCards: cardsKey, page: index } as const
+  })
+  const currentPage = pageState.forCards === cardsKey ? pageState.page : 0
+
+  function notifyCardChange(pageIndex: number) {
+    const entry = pageEntries[pageIndex]
+    if (!entry) return
+    const cardId = entry.card.slug ?? String(entry.card.id)
+    if (cardId !== lastReportedCardRef.current) {
+      lastReportedCardRef.current = cardId
+      onCardChange?.(cardId)
+    }
+  }
+
   useImperativeHandle(ref, () => ({
     jumpToCard: (cardId) => {
       const index = startIndexByCard.get(cardId)
       if (index === undefined) return
-      // flip(n) animates but lands on the wrong spread when jumping more than
-      // one spread in two-page mode — turnToPage(n) switches instantly and reliably
       flipRef.current?.pageFlip()?.turnToPage(index)
       setPageState({ forCards: cardsKey, page: index })
+      notifyCardChange(index)
     },
   }))
 
@@ -101,12 +122,15 @@ export function FlipbookView({ cards, ref }: { cards: CatalogCard[]; ref?: Ref<F
             minHeight={440}
             minWidth={290}
             mobileScrollSupport
-            onFlip={(event: { data: number }) => setPageState({ forCards: cardsKey, page: event.data })}
+            onFlip={(event: { data: number }) => {
+              setPageState({ forCards: cardsKey, page: event.data })
+              notifyCardChange(event.data)
+            }}
             ref={flipRef}
             showCover={false}
             showPageCorners
             size='stretch'
-            startPage={0}
+            startPage={currentPage}
             startZIndex={0}
             style={{}}
             swipeDistance={30}
