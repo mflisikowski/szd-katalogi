@@ -76,7 +76,11 @@ export interface Config {
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    offers: {
+      cards: 'cards';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     tenants: TenantsSelect<false> | TenantsSelect<true>;
@@ -173,6 +177,11 @@ export interface Offer {
   tenant?: (number | null) | Tenant;
   name: string;
   slug: string;
+  cards?: {
+    docs?: (number | Card)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -183,6 +192,9 @@ export interface Offer {
 export interface Card {
   id: number;
   tenant?: (number | null) | Tenant;
+  /**
+   * Zostaw puste — tytuł wyliczy się z nazwy pliku PDF przy zapisie
+   */
   title: string;
   offer: number | Offer;
   /**
@@ -193,10 +205,9 @@ export interface Card {
    * Generowany z tytułu, jeśli pusty
    */
   slug?: string | null;
-  _key?: string | null;
   prefix?: string | null;
-  updatedAt: string;
   createdAt: string;
+  updatedAt: string;
   url?: string | null;
   thumbnailURL?: string | null;
   filename?: string | null;
@@ -336,6 +347,7 @@ export interface OffersSelect<T extends boolean = true> {
   tenant?: T;
   name?: T;
   slug?: T;
+  cards?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -349,10 +361,9 @@ export interface CardsSelect<T extends boolean = true> {
   offer?: T;
   letter?: T;
   slug?: T;
-  _key?: T;
   prefix?: T;
-  updatedAt?: T;
   createdAt?: T;
+  updatedAt?: T;
   url?: T;
   thumbnailURL?: T;
   filename?: T;

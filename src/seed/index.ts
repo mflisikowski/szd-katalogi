@@ -61,7 +61,7 @@ async function seed() {
 
   payload.logger.info(`Oferta: ${offer.name} (id: ${offer.id})`)
 
-  // SEED_FRESH=1 usuwa karty tenanta przed seedem (kasuje też pliki z uploadthing)
+  // SEED_FRESH=1 usuwa karty tenanta przed seedem (kasuje też bloby z Azure)
   if (process.env.SEED_FRESH === '1') {
     const removed = await payload.delete({
       collection: 'cards',

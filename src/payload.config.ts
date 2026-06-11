@@ -6,7 +6,8 @@ import { fileURLToPath } from 'node:url'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
-import { uploadthingStorage } from '@payloadcms/storage-uploadthing'
+import { azureStorage } from '@payloadcms/storage-azure'
+import { pl } from '@payloadcms/translations/languages/pl'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
@@ -40,6 +41,11 @@ export default buildConfig({
 
   globals: [],
 
+  i18n: {
+    fallbackLanguage: 'pl',
+    supportedLanguages: { pl },
+  },
+
   plugins: [
     multiTenantPlugin<Config>({
       collections: {
@@ -49,19 +55,15 @@ export default buildConfig({
       tenantsSlug: Tenants.slug,
       userHasAccessToAllTenants: (user) => Boolean(user.roles?.includes('super-admin')),
     }),
-    uploadthingStorage({
+
+    azureStorage({
+      allowContainerCreate: false,
+      baseURL: env.AZURE_STORAGE_ACCOUNT_BASEURL,
       collections: {
-        // Bezpośrednie URL-e CDN (utfs.io): pliki są publiczne, a serwowanie
-        // przez /api/cards/file/* jest wadliwe — HEAD na utfs.io nie zwraca
-        // content-length i Payload odpowiada z Content-Length: 0
-        cards: {
-          disablePayloadAccessControl: true,
-        },
+        cards: true,
       },
-      options: {
-        acl: 'public-read',
-        token: env.UPLOADTHING_TOKEN,
-      },
+      connectionString: env.AZURE_STORAGE_CONNECTION_STRING,
+      containerName: env.AZURE_STORAGE_CONTAINER_NAME,
     }),
   ],
 
