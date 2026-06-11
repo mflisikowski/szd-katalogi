@@ -50,7 +50,6 @@
     "payload:importMap": "payload generate:importmap",
     "payload:types": "payload generate:types",
     "registry:build": "shadcn build",
-    "seed": "payload run ./src/seed/index.ts",
     "start": "next start"
   },
   "type": "module",
